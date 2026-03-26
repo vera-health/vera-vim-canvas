@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useVimOS } from "@/app/page";
 import type { EncounterUpdatePayload, CanUpdateEncounterParams } from "@/types/vim";
 
 export type WriteStatus = "idle" | "writing" | "success" | "error";
+export type WriteAvailability = "available" | "unavailable" | "unknown";
 
 const RATE_LIMIT = 10;
 const RATE_WINDOW_MS = 60_000;
@@ -19,7 +20,10 @@ export function useVimWriter() {
 
   // Check which encounter fields are writable
   useEffect(() => {
-    if (!vimOS?.canUpdateEncounter) return;
+    if (!vimOS?.canUpdateEncounter) {
+      console.debug("[Vera] canUpdateEncounter not available on vimOS");
+      return;
+    }
 
     try {
       const allFields: CanUpdateEncounterParams = {
@@ -32,6 +36,7 @@ export function useVimWriter() {
         encounterNotes: { generalNotes: true },
       };
       const result = vimOS.canUpdateEncounter(allFields);
+      console.debug("[Vera] canUpdateEncounter result:", result);
       if (result?.details) {
         setWritableFields(result.details);
       }
@@ -45,7 +50,10 @@ export function useVimWriter() {
     if (!vimOS?.ehr?.resourceUpdater?.subscribe) return;
     try {
       const unsub = vimOS.ehr.resourceUpdater.subscribe("encounter", (fields) => {
-        setWritableFields(fields ?? {});
+        console.debug("[Vera] resourceUpdater encounter fields:", fields);
+        if (fields && typeof fields === "object" && Object.keys(fields).length > 0) {
+          setWritableFields(fields);
+        }
       });
       return unsub;
     } catch {
@@ -62,28 +70,29 @@ export function useVimWriter() {
     return RATE_LIMIT - sharedWriteTimestamps.length;
   }, []);
 
-  const canWrite = useCallback(
-    (section: keyof CanUpdateEncounterParams): boolean => {
-      if (!vimOS?.updateEncounter) return false;
+  const getWriteAvailability = useCallback(
+    (section: keyof CanUpdateEncounterParams): WriteAvailability => {
+      if (!vimOS?.updateEncounter) return "unknown";
       const sectionFields = writableFields[section];
-      if (!sectionFields) return false;
-      // Check if at least one field in the section is writable
-      return Object.values(sectionFields).some(Boolean);
+      if (!sectionFields) return "unknown";
+      return Object.values(sectionFields).some(Boolean) ? "available" : "unavailable";
     },
     [vimOS, writableFields],
   );
 
   const writeToEncounter = useCallback(
     async (payload: EncounterUpdatePayload): Promise<void> => {
-      if (!vimOS?.updateEncounter) {
-        throw new Error("updateEncounter not available");
-      }
       if (getRemainingWrites() <= 0) {
+        setWriteStatus("error");
+        setTimeout(() => setWriteStatus("idle"), 3000);
         throw new Error("Rate limit reached (10 writes/min). Please wait.");
       }
 
       setWriteStatus("writing");
       try {
+        if (!vimOS?.updateEncounter) {
+          throw new Error("updateEncounter not available");
+        }
         await vimOS.updateEncounter(payload);
         sharedWriteTimestamps.push(Date.now());
         setWriteStatus("success");
@@ -98,7 +107,7 @@ export function useVimWriter() {
   );
 
   return {
-    canWrite,
+    getWriteAvailability,
     writeToEncounter,
     writeStatus,
     remainingWrites: getRemainingWrites(),
