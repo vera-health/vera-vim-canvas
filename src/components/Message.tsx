@@ -66,8 +66,8 @@ export function Message({
 
         {/* Perplexity-style follow-up questions */}
         {!isStreaming && message.suggestedQuestions && message.suggestedQuestions.length > 0 && (
-          <div className="mt-4">
-            <p className="text-sm font-semibold mb-2" style={{ color: "#37475E" }}>
+          <div className="mt-3">
+            <p className="text-xs font-semibold mb-1.5" style={{ color: "#37475E" }}>
               Suggested questions
             </p>
             <div style={{ borderTop: "1px solid #EDF1F5" }}>
@@ -76,14 +76,14 @@ export function Message({
                   key={q}
                   type="button"
                   onClick={() => onQuestionClick?.(q)}
-                  className="flex w-full items-center gap-2.5 py-2.5 text-left text-sm cursor-pointer"
+                  className="flex w-full items-center gap-2 py-2 text-left text-xs cursor-pointer"
                   style={{
                     borderBottom: "1px solid #EDF1F5",
                     color: "#37475E",
                     fontFamily: "Manrope, system-ui, sans-serif",
                   }}
                 >
-                  <CornerDownRight className="h-4 w-4 shrink-0" style={{ color: "#8090A6" }} />
+                  <CornerDownRight className="h-3.5 w-3.5 shrink-0" style={{ color: "#8090A6" }} />
                   {q}
                 </button>
               ))}
