@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
 // Allow up to 60 seconds for Vera's AI to respond (searches literature, etc.)
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 const VERA_API_URL =
   process.env.NEXT_PUBLIC_VERA_API_URL || "http://localhost:3000";
