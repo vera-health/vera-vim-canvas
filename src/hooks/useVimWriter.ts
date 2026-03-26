@@ -7,63 +7,65 @@ import type { EncounterUpdatePayload, CanUpdateEncounterParams } from "@/types/v
 export type WriteStatus = "idle" | "writing" | "success" | "error";
 export type WriteAvailability = "available" | "unavailable" | "unknown";
 
+/** SOAP + other encounter sections the user can target */
+export type EhrSection = keyof CanUpdateEncounterParams;
+
 const RATE_LIMIT = 10;
 const RATE_WINDOW_MS = 60_000;
 
 // Module-level timestamps shared across all useVimWriter instances
 const sharedWriteTimestamps: number[] = [];
 
+const ALL_FIELDS: CanUpdateEncounterParams = {
+  subjective: { generalNotes: true, chiefComplaintNotes: true, historyOfPresentIllnessNotes: true, reviewOfSystemsNotes: true },
+  objective: { generalNotes: true, physicalExamNotes: true },
+  assessment: { generalNotes: true, diagnosisCodes: true },
+  plan: { generalNotes: true },
+  billingInformation: { procedureCodes: true },
+  patientInstructions: { generalNotes: true },
+  encounterNotes: { generalNotes: true },
+};
+
 export function useVimWriter() {
   const vimOS = useVimOS();
   const [writeStatus, setWriteStatus] = useState<WriteStatus>("idle");
   const [writableFields, setWritableFields] = useState<CanUpdateEncounterParams>({});
 
-  // Check which encounter fields are writable
-  useEffect(() => {
-    if (!vimOS?.ehr?.resourceUpdater?.canUpdateEncounter) {
-      console.debug("[Vera] canUpdateEncounter not available on vimOS");
-      return;
-    }
-
+  // Helper: re-check writability via canUpdateEncounter
+  const refreshWritability = useCallback(() => {
+    if (!vimOS?.ehr?.resourceUpdater?.canUpdateEncounter) return;
     try {
-      const allFields: CanUpdateEncounterParams = {
-        subjective: { generalNotes: true, chiefComplaintNotes: true, historyOfPresentIllnessNotes: true, reviewOfSystemsNotes: true },
-        objective: { generalNotes: true, physicalExamNotes: true },
-        assessment: { generalNotes: true, diagnosisCodes: true },
-        plan: { generalNotes: true },
-        billingInformation: { procedureCodes: true },
-        patientInstructions: { generalNotes: true },
-        encounterNotes: { generalNotes: true },
-      };
-      const result = vimOS.ehr.resourceUpdater.canUpdateEncounter(allFields);
+      const result = vimOS.ehr.resourceUpdater.canUpdateEncounter(ALL_FIELDS);
       console.debug("[Vera] canUpdateEncounter result:", result);
       if (result?.details) {
         setWritableFields(result.details);
       }
     } catch {
-      // canUpdateEncounter not available — leave empty
+      // canUpdateEncounter not available
     }
   }, [vimOS]);
 
-  // Subscribe to writability changes
+  // Initial check
+  useEffect(() => {
+    refreshWritability();
+  }, [refreshWritability]);
+
+  // Subscribe to writability changes — re-call canUpdateEncounter on every callback
+  // (matches demo app pattern: subscribe as trigger, then re-check)
   useEffect(() => {
     if (!vimOS?.ehr?.resourceUpdater?.subscribe) return;
     try {
-      const unsub = vimOS.ehr.resourceUpdater.subscribe("encounter", (fields) => {
-        console.debug("[Vera] resourceUpdater encounter fields:", fields);
-        if (fields && typeof fields === "object" && Object.keys(fields).length > 0) {
-          setWritableFields(fields);
-        }
+      const unsub = vimOS.ehr.resourceUpdater.subscribe("encounter", () => {
+        refreshWritability();
       });
       return unsub;
     } catch {
       // not available
     }
-  }, [vimOS]);
+  }, [vimOS, refreshWritability]);
 
   const getRemainingWrites = useCallback(() => {
     const now = Date.now();
-    // Prune expired timestamps in-place
     while (sharedWriteTimestamps.length > 0 && now - sharedWriteTimestamps[0] >= RATE_WINDOW_MS) {
       sharedWriteTimestamps.shift();
     }
@@ -71,7 +73,7 @@ export function useVimWriter() {
   }, []);
 
   const getWriteAvailability = useCallback(
-    (section: keyof CanUpdateEncounterParams): WriteAvailability => {
+    (section: EhrSection): WriteAvailability => {
       if (!vimOS?.ehr?.resourceUpdater?.updateEncounter) return "unknown";
       const sectionFields = writableFields[section];
       if (!sectionFields) return "unknown";
@@ -106,10 +108,34 @@ export function useVimWriter() {
     [vimOS, getRemainingWrites],
   );
 
+  /** Build an EncounterUpdatePayload targeting generalNotes for a given SOAP section */
+  const buildSectionPayload = useCallback(
+    (section: EhrSection, text: string): EncounterUpdatePayload => {
+      switch (section) {
+        case "subjective":
+          return { subjective: { generalNotes: text } };
+        case "objective":
+          return { objective: { generalNotes: text } };
+        case "assessment":
+          return { assessment: { generalNotes: text } };
+        case "plan":
+          return { plan: { generalNotes: text } };
+        case "patientInstructions":
+          return { patientInstructions: { generalNotes: text } };
+        case "encounterNotes":
+          return { encounterNotes: { generalNotes: text } };
+        default:
+          return { encounterNotes: { generalNotes: text } };
+      }
+    },
+    [],
+  );
+
   return {
     getWriteAvailability,
     writeToEncounter,
     writeStatus,
     remainingWrites: getRemainingWrites(),
+    buildSectionPayload,
   };
 }
