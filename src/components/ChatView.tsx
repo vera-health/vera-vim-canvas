@@ -13,7 +13,7 @@ import { getSupabase } from "@/utils/supabase";
 import { Tooltip } from "@/components/Tooltip";
 
 export function ChatView() {
-  const { patient, encounter, problems, medications } = useVimContext();
+  const { patient, encounter, problems, medications, allergies, labs, vitals } = useVimContext();
   const { messages, isStreaming, sendMessage, stopStream, resetChat, regenerateMessage } = useVeraChat();
   const {
     state: whisperState,
@@ -30,9 +30,22 @@ export function ChatView() {
   const [input, setInput] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const userScrolledUp = useRef(false);
+
+  // Auto-resize textarea up to 6 rows
+  useEffect(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    ta.style.height = "auto";
+    const lineHeight = 20;
+    const padding = 16; // 8px top + 8px bottom
+    const maxHeight = lineHeight * 6 + padding;
+    ta.style.height = `${Math.min(ta.scrollHeight, maxHeight)}px`;
+    ta.style.overflowY = ta.scrollHeight > maxHeight ? "auto" : "hidden";
+  }, [input]);
 
   // Insert transcribed text into input
   useEffect(() => {
@@ -74,13 +87,13 @@ export function ChatView() {
         if (input.trim() && !isStreaming) {
           const text = input.trim();
           setInput("");
-          sendMessage(text, formatEhrContext(patient, encounter));
+          sendMessage(text, formatEhrContext(patient, encounter, problems, medications, allergies, labs, vitals));
         }
       }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [whisperState, isStreaming, micSupported, input, patient, encounter, startRecording, cancelRecording, stopAndTranscribe, sendMessage]);
+  }, [whisperState, isStreaming, micSupported, input, patient, encounter, problems, medications, allergies, labs, vitals, startRecording, cancelRecording, stopAndTranscribe, sendMessage]);
 
   const handleScroll = useCallback(() => {
     const el = scrollContainerRef.current;
@@ -112,7 +125,7 @@ export function ChatView() {
     const text = input.trim();
     if (!text || isStreaming) return;
     setInput("");
-    sendMessage(text, formatEhrContext(patient, encounter, problems, medications));
+    sendMessage(text, formatEhrContext(patient, encounter, problems, medications, allergies, labs, vitals));
   }
 
   async function handleLogout() {
@@ -128,7 +141,7 @@ export function ChatView() {
 
   function handleSampleClick(question: string) {
     if (isStreaming) return;
-    sendMessage(question, formatEhrContext(patient, encounter, problems, medications));
+    sendMessage(question, formatEhrContext(patient, encounter, problems, medications, allergies, labs, vitals));
   }
 
   return (
@@ -249,23 +262,36 @@ export function ChatView() {
       <div className="px-4 py-3" style={{ borderTop: "1px solid #EDF2F7" }}>
         <form onSubmit={handleSubmit}>
           <div
-            className="flex items-center gap-2 rounded-[20px] border px-4 py-2"
+            className="relative flex items-end gap-2 rounded-[20px] border px-4 py-2"
             style={{
               borderColor: "#EDF1F5",
               backgroundColor: "#FFFFFF",
             }}
           >
-            <input
-              type="text"
+            <textarea
+              ref={textareaRef}
+              rows={1}
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
+                  e.preventDefault();
+                  if (input.trim() && !isStreaming) {
+                    const text = input.trim();
+                    setInput("");
+                    sendMessage(text, formatEhrContext(patient, encounter, problems, medications, allergies, labs, vitals));
+                  }
+                }
+              }}
               disabled={isStreaming || whisperState !== "idle"}
               placeholder="Ask Vera..."
-              className="flex-1 text-sm outline-none disabled:opacity-50"
+              className="flex-1 text-sm outline-none disabled:opacity-50 resize-none leading-[20px]"
               style={{
                 color: "#151718",
                 fontFamily: "Manrope, system-ui, sans-serif",
                 fontWeight: 400,
+                paddingTop: 8,
+                paddingBottom: 8,
               }}
             />
             <AnimatePresence mode="wait" initial={false}>
@@ -277,7 +303,7 @@ export function ChatView() {
                   animate={{ width: "auto", opacity: 1 }}
                   exit={{ width: 40, opacity: 0 }}
                   transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
-                  className="flex h-10 shrink-0 items-center rounded-full"
+                  className="flex h-10 min-w-0 items-center rounded-full"
                   style={{
                     backgroundColor: "#f2f2f2",
                     boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.06)",
@@ -328,7 +354,7 @@ export function ChatView() {
                   animate={{ width: "auto", opacity: 1 }}
                   exit={{ width: 40, opacity: 0 }}
                   transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
-                  className="flex h-10 shrink-0 items-center rounded-full px-4"
+                  className="flex h-10 min-w-0 items-center rounded-full px-4"
                   style={{
                     backgroundColor: "#f2f2f2",
                     boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.06)",
