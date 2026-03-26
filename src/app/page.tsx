@@ -23,12 +23,16 @@ export default function Page() {
       if (!sdk?.initializeVimSDK) return;
       try {
         const os = await sdk.initializeVimSDK();
+        console.log("[Vera] VimOS initialized:", os ? "success" : "null");
+        console.log("[Vera] VimOS keys:", os ? Object.keys(os) : "N/A");
+        console.log("[Vera] VimOS.ehr:", os?.ehr ? "present" : "missing");
+        console.log("[Vera] VimOS.ehr?.ehrState:", JSON.stringify(os?.ehr?.ehrState, null, 2));
         if (os?.hub?.setActivationStatus) {
           os.hub.setActivationStatus("ENABLED");
         }
         setVimOS(os);
       } catch (e) {
-        console.error("VimOS init failed:", e);
+        console.error("[Vera] VimOS init failed:", e);
       }
     }
     initVim();

@@ -88,6 +88,7 @@ export function useVeraChat() {
       // Only prepend patient context on the first message of a conversation
       const isFirstMessage = threadIdRef.current === null;
       const fullQuestion = (isFirstMessage ? ehrContext || "" : "") + question;
+      console.log("[Vera] useVeraChat.sendMessage:", JSON.stringify({ isFirstMessage, ehrContextLength: ehrContext?.length ?? 0, ehrContextPreview: ehrContext?.slice(0, 200), fullQuestionPreview: fullQuestion.slice(0, 300) }));
       const contentBuffer = { current: "" };
       let lastParseTime = 0;
       let pendingParseTimer: ReturnType<typeof setTimeout> | null = null;

@@ -82,7 +82,9 @@ export function ChatView() {
     const text = input.trim();
     if (!text || isStreaming) return;
     setInput("");
-    sendMessage(text, formatEhrContext(patient, encounter, problems, medications));
+    const ctx = formatEhrContext(patient, encounter, problems, medications);
+    console.log("[Vera] Sending message with EHR context:", JSON.stringify({ patient: !!patient, encounter: !!encounter, problemsCount: problems.length, medicationsCount: medications.length, contextString: ctx }));
+    sendMessage(text, ctx);
   }
 
   async function handleLogout() {
