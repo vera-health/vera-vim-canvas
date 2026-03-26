@@ -48,6 +48,67 @@ export interface VimPaginationResponse<T> {
   };
 }
 
+// ---- Orders ----------------------------------------------------------------
+
+export type VimOrderType = "LAB" | "DI" | "PROCEDURE" | "RX";
+
+export interface VimOrder {
+  identifiers?: { ehrOrderId?: string };
+  basicInformation?: {
+    type?: VimOrderType;
+    ehrEncounterId?: string;
+    createdDate?: string;
+    notes?: string;
+    orderName?: string;
+    reason?: string;
+  };
+  assessments?: { assessments?: VimDiagnosis[] };
+  medications?: VimMedication[];
+}
+
+// ---- Referral --------------------------------------------------------------
+
+export interface VimReferral {
+  identifiers?: { ehrReferralId?: string; vimReferralId?: string };
+  basicInformation?: {
+    specialty?: string;
+    startDate?: string;
+    endDate?: string;
+    createdDate?: string;
+    status?: "DRAFT" | "SIGNED" | "DELETED";
+    priority?: "ROUTINE" | "URGENT" | "STAT";
+    authCode?: string;
+    isLocked?: boolean;
+    reasons?: string[];
+    notes?: string;
+    facilityName?: string;
+    numberOfVisits?: number;
+  };
+  conditions?: { diagnosis?: VimDiagnosis[] };
+}
+
+// ---- Lab Results -----------------------------------------------------------
+
+export interface VimLabResultEntry {
+  name?: string;
+  date?: string;
+  value?: string;
+  unit?: string;
+  loincCode?: string;
+  referenceRange?: string;
+}
+
+export interface VimLabResult {
+  basicInformation?: {
+    name?: string;
+    cptCode?: string;
+    cptDescription?: string;
+    resultDate?: string;
+    resultStatus?: string;
+  };
+  results?: VimLabResultEntry[];
+}
+
 // ---- Patient ---------------------------------------------------------------
 
 export interface VimEhrPatient {
@@ -71,6 +132,7 @@ export interface VimEhrPatient {
   getProblemList?(): Promise<VimDiagnosis[]>;
   getMedicationList?(): Promise<VimMedication[]>;
   getAllergyList?(): Promise<VimAllergy[]>;
+  getLabResults?(params?: VimPaginationInput): Promise<VimPaginationResponse<VimLabResult>>;
 }
 
 // ---- Encounter -------------------------------------------------------------
@@ -105,12 +167,14 @@ export interface VimEhrEncounter {
 
 // ---- EHR API ---------------------------------------------------------------
 
-type EhrResource = "patient" | "encounter";
+type EhrResource = "patient" | "encounter" | "orders" | "referral" | "claim";
 
 export interface VimEhr {
   ehrState: {
     patient: VimEhrPatient | null;
     encounter: VimEhrEncounter | null;
+    orders?: VimOrder[] | null;
+    referral?: VimReferral | null;
   };
   subscribe(
     resource: EhrResource,
@@ -120,6 +184,11 @@ export interface VimEhr {
     resource: EhrResource,
     cb: (data: any) => void,
   ): void;
+  workflowEvents?: {
+    order?: {
+      onOrderCreated?(cb: (order: VimOrder) => void): () => void;
+    };
+  };
 }
 
 // ---- Hub / Activation ------------------------------------------------------
@@ -128,6 +197,10 @@ export type ActivationStatus = "ENABLED" | "DISABLED" | "LOADING";
 
 export interface VimHub {
   setActivationStatus(status: ActivationStatus): void;
+  notificationBadge?: {
+    set(count: number): void;
+    hide(): void;
+  };
 }
 
 // ---- Top-level SDK objects --------------------------------------------------
