@@ -1,1 +1,91 @@
 @import "tailwindcss";
+@import "katex/dist/katex.min.css";
+
+/* Vera color scheme */
+:root {
+  /* Grey scale */
+  --vera-grey-50: #F7FAFC;
+  --vera-grey-100: #EDF1F5;
+  --vera-grey-200: #E4EAF2;
+  --vera-grey-300: #C0C9D5;
+  --vera-grey-400: #8090A6;
+  --vera-grey-500: #486081;
+  --vera-grey-600: #37475E;
+  --vera-grey-700: #364152;
+  --vera-grey-800: #263245;
+  --vera-grey-900: #151718;
+
+  /* Primary (teal) */
+  --vera-primary: #1b779b;
+  --vera-primary-50: #e3eef3;
+  --vera-primary-100: #b9d5e2;
+  --vera-primary-200: #93bed0;
+  --vera-primary-300: #6da7be;
+  --vera-primary-500: #1b779b;
+  --vera-primary-600: #155f7c;
+  --vera-primary-700: #10485d;
+  --vera-primary-800: #0a303e;
+  --vera-primary-900: #08242f;
+
+  /* Secondary */
+  --vera-secondary: #3eabaa;
+
+  /* Semantic */
+  --vera-success: #1faf43;
+  --vera-warning: #f28e02;
+  --vera-danger: #d63152;
+
+  /* Evidence */
+  --vera-evidence-very-high: #0f766e;
+  --vera-evidence-high: #047857;
+  --vera-evidence-moderate: #b45309;
+  --vera-evidence-low: #c2410c;
+  --vera-evidence-none: #486081;
+}
+
+/* Streaming text fade-in animation */
+@keyframes stream-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.stream-word {
+  animation: stream-fade-in 500ms ease-out forwards;
+}
+
+/* Prose overrides for Vera styling */
+.vera-prose {
+  font-family: 'Manrope', system-ui, sans-serif;
+  color: var(--vera-grey-600);
+  font-size: 14px !important;
+  line-height: 24px !important;
+  letter-spacing: 0.01em !important;
+}
+
+.vera-prose p,
+.vera-prose li,
+.vera-prose td,
+.vera-prose th {
+  font-size: 14px !important;
+  line-height: 24px !important;
+  letter-spacing: 0.01em !important;
+}
+
+.vera-prose strong {
+  font-weight: 600;
+}
+
+.vera-prose h1, .vera-prose h2, .vera-prose h3,
+.vera-prose h4, .vera-prose h5, .vera-prose h6 {
+  font-weight: 600 !important;
+  color: var(--vera-grey-800);
+  font-size: 15px !important;
+}
+
+.vera-prose code {
+  font-family: 'Fira Code', monospace;
+}
+
+.vera-prose a {
+  color: #2563EB;
+}

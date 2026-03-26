@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { ArrowUp, Square } from "lucide-react";
 import { useVimContext } from "@/hooks/useVimContext";
 import { useVeraChat } from "@/hooks/useVeraChat";
 import { formatEhrContext } from "@/utils/formatContext";
@@ -29,24 +30,29 @@ export function ChatView() {
     .join(" ");
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-screen flex-col" style={{ backgroundColor: "#FFFFFF" }}>
       {/* Header */}
-      <div className="border-b border-gray-200 px-4 py-3">
+      <div className="px-4 py-3" style={{ borderBottom: "1px solid #EDF2F7" }}>
         <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full bg-indigo-600" />
-          <span className="text-sm font-semibold">Vera</span>
+          <div className="h-3 w-3 rounded-full" style={{ backgroundColor: "#1b779b" }} />
+          <span className="text-sm font-semibold" style={{ color: "#37475E" }}>
+            Vera
+          </span>
         </div>
         {patientName && (
-          <div className="mt-1 text-xs text-gray-500">
+          <div className="mt-1 text-xs" style={{ color: "#687076" }}>
             Patient: {patientName}
           </div>
         )}
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {messages.length === 0 && (
-          <div className="flex h-full items-center justify-center text-sm text-gray-400">
+          <div
+            className="flex h-full items-center justify-center text-sm"
+            style={{ color: "#8090A6" }}
+          >
             Ask Vera anything about your patient
           </div>
         )}
@@ -61,42 +67,51 @@ export function ChatView() {
             }
           />
         ))}
-        {isStreaming && (
-          <div className="text-xs text-gray-400">Vera is typing...</div>
-        )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <form
-        onSubmit={handleSubmit}
-        className="border-t border-gray-200 px-4 py-3"
-      >
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            disabled={isStreaming}
-            placeholder="Ask Vera..."
-            className="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
-          />
-          <button
-            type="submit"
-            disabled={isStreaming || !input.trim()}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-600 text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
+      {/* Input bar — matches mobile SafeGlassView style */}
+      <div className="px-4 py-3" style={{ borderTop: "1px solid #EDF2F7" }}>
+        <form onSubmit={handleSubmit}>
+          <div
+            className="flex items-center gap-2 rounded-[20px] border px-4 py-2"
+            style={{
+              borderColor: "#EDF1F5",
+              backgroundColor: "#FFFFFF",
+            }}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className="h-4 w-4"
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              disabled={isStreaming}
+              placeholder="Ask Vera..."
+              className="flex-1 text-sm outline-none disabled:opacity-50"
+              style={{
+                color: "#151718",
+                fontFamily: "Manrope, system-ui, sans-serif",
+                fontWeight: 400,
+              }}
+            />
+            <button
+              type="submit"
+              disabled={isStreaming ? false : !input.trim()}
+              onClick={isStreaming ? (e) => { e.preventDefault(); /* TODO: stop stream */ } : undefined}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-opacity disabled:opacity-50"
+              style={{
+                backgroundColor: "#486081",
+                color: "#FFFFFF",
+              }}
             >
-              <path d="M3.105 2.288a.75.75 0 0 0-.826.95l1.414 4.926A1.5 1.5 0 0 0 5.135 9.25h6.115a.75.75 0 0 1 0 1.5H5.135a1.5 1.5 0 0 0-1.442 1.086l-1.414 4.926a.75.75 0 0 0 .826.95l14.095-5.638a.75.75 0 0 0 0-1.398L3.105 2.289Z" />
-            </svg>
-          </button>
-        </div>
-      </form>
+              {isStreaming ? (
+                <Square className="h-3.5 w-3.5" fill="currentColor" />
+              ) : (
+                <ArrowUp className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
