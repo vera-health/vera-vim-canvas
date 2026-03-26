@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUp, Square } from "lucide-react";
 import { useVimContext } from "@/hooks/useVimContext";
 import { useVeraChat } from "@/hooks/useVeraChat";
@@ -12,9 +12,20 @@ export function ChatView() {
   const { messages, isStreaming, sendMessage, stopStream } = useVeraChat();
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const userScrolledUp = useRef(false);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    userScrolledUp.current = !atBottom;
+  }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!userScrolledUp.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
   function handleSubmit(e: FormEvent) {
@@ -47,7 +58,11 @@ export function ChatView() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
+      >
         {messages.length === 0 && (
           <div
             className="flex h-full items-center justify-center text-sm"
@@ -70,7 +85,7 @@ export function ChatView() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input bar — matches mobile SafeGlassView style */}
+      {/* Input bar */}
       <div className="px-4 py-3" style={{ borderTop: "1px solid #EDF2F7" }}>
         <form onSubmit={handleSubmit}>
           <div
