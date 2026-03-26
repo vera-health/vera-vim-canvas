@@ -291,5 +291,13 @@ export function useVeraChat() {
     abortRef.current?.abort();
   }, []);
 
-  return { messages, isStreaming, sendMessage, stopStream };
+  const resetChat = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setMessages([]);
+    setIsStreaming(false);
+    threadIdRef.current = null;
+  }, []);
+
+  return { messages, isStreaming, sendMessage, stopStream, resetChat };
 }
