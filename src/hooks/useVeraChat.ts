@@ -329,6 +329,18 @@ export function useVeraChat() {
     abortRef.current?.abort();
   }, []);
 
+  const regenerateMessage = useCallback(() => {
+    if (isStreaming) return;
+    // Find the last user message
+    const lastUserIdx = messages.findLastIndex((m) => m.role === "user");
+    if (lastUserIdx === -1) return;
+    const lastUserContent = messages[lastUserIdx].content;
+    // Remove from the last user message onward (user + assistant)
+    setMessages((prev) => prev.slice(0, lastUserIdx));
+    // Re-send the question (threadId already set, so no EHR context prepended)
+    sendMessage(lastUserContent);
+  }, [messages, isStreaming, sendMessage]);
+
   const resetChat = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
@@ -337,5 +349,5 @@ export function useVeraChat() {
     threadIdRef.current = null;
   }, []);
 
-  return { messages, isStreaming, sendMessage, stopStream, resetChat };
+  return { messages, isStreaming, sendMessage, stopStream, resetChat, regenerateMessage };
 }

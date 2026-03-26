@@ -117,7 +117,7 @@ function nextId(): string {
 
 export function useEhrNotifications() {
   const vimOS = useVimOS();
-  const { patient, encounter, orders, referral, labResults } = useVimContext();
+  const { patient, encounter, orders, referral, labs } = useVimContext();
   const { isEnabled } = useNotificationPreferences();
 
   const [state, dispatch] = useReducer(reducer, { notifications: [] });
@@ -158,8 +158,8 @@ export function useEhrNotifications() {
 
   // --- Trigger 1: Order created via workflowEvents ---
   useEffect(() => {
-    if (!vimOS?.ehr?.workflowEvents?.order?.onOrderCreated) return;
-    const unsub = vimOS.ehr.workflowEvents.order.onOrderCreated((order: VimOrder) => {
+    if (!vimOS?.workflowEvents?.order?.onOrderCreated) return;
+    const unsub = vimOS.workflowEvents.order.onOrderCreated((order: VimOrder) => {
       const orderId = order.identifiers?.ehrOrderId;
       if (orderId) seenOrderIdsRef.current.add(orderId);
       const name = order.basicInformation?.orderName ?? "Unknown order";
@@ -223,7 +223,7 @@ export function useEhrNotifications() {
 
         if (prevLabCountRef.current > 0 && newCount > prevLabCountRef.current) {
           const newResults = results.slice(0, newCount - prevLabCountRef.current);
-          const firstName = newResults[0]?.basicInformation?.name ?? "Lab results";
+          const firstName = newResults[0]?.testName ?? "Lab results";
           addNotification(
             "new-lab-result",
             `New results: ${firstName}`,
