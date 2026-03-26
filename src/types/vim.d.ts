@@ -32,9 +32,13 @@ export interface VimHub {
   setActivationStatus(status: ActivationStatus): void;
 }
 
-export interface VimSdk {
+export interface VimOS {
   ehr: VimEhr;
-  hub?: VimHub;
+  hub: VimHub;
+}
+
+export interface VimSdk {
+  initializeVimSDK(): Promise<VimOS>;
 }
 
 declare global {

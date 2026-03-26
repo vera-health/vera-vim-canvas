@@ -1,29 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useVimOS } from "@/app/page";
 import type { VimEhrPatient, VimEhrEncounter } from "@/types/vim";
 
 export function useVimContext() {
+  const vimOS = useVimOS();
   const [patient, setPatient] = useState<VimEhrPatient | null>(null);
   const [encounter, setEncounter] = useState<VimEhrEncounter | null>(null);
 
   useEffect(() => {
-    const sdk = window.vimSdk;
-    if (!sdk) return;
+    if (!vimOS?.ehr) return;
 
-    // Tell Vim Hub we're ready
-    if (sdk.hub?.setActivationStatus) {
-      sdk.hub.setActivationStatus("ENABLED");
-    }
+    vimOS.ehr.patient.get().then(setPatient).catch(() => {});
+    vimOS.ehr.encounter.get().then(setEncounter).catch(() => {});
 
-    if (!sdk.ehr) return;
-
-    sdk.ehr.patient.get().then(setPatient).catch(() => {});
-    sdk.ehr.encounter.get().then(setEncounter).catch(() => {});
-
-    sdk.ehr.patient.subscribe(setPatient);
-    sdk.ehr.encounter.subscribe(setEncounter);
-  }, []);
+    vimOS.ehr.patient.subscribe(setPatient);
+    vimOS.ehr.encounter.subscribe(setEncounter);
+  }, [vimOS]);
 
   return { patient, encounter };
 }
