@@ -16,6 +16,7 @@ export type Message = {
   content: string;
   mdast?: VeraRoot;
   thinking?: ThinkingState;
+  suggestedQuestions?: string[];
 };
 
 function defaultThinkingState(): ThinkingState {
@@ -231,6 +232,16 @@ export function useVeraChat() {
               sourceCount: total,
               searchDone: true,
             }));
+          },
+
+          onSuggestedQuestions(questions) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId
+                  ? { ...m, suggestedQuestions: questions }
+                  : m,
+              ),
+            );
           },
         }, controller.signal);
 
