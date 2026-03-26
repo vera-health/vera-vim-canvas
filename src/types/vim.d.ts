@@ -1,0 +1,37 @@
+export interface VimEhrPatient {
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: string;
+  memberId?: string;
+}
+
+export interface VimEhrEncounter {
+  encounterDate?: string;
+  chiefComplaint?: string;
+  diagnoses?: Array<{
+    code: string;
+    description?: string;
+    name?: string;
+  }>;
+}
+
+export interface VimEhr {
+  patient: {
+    get(): Promise<VimEhrPatient | null>;
+    subscribe(cb: (patient: VimEhrPatient | null) => void): void;
+  };
+  encounter: {
+    get(): Promise<VimEhrEncounter | null>;
+    subscribe(cb: (encounter: VimEhrEncounter | null) => void): void;
+  };
+}
+
+export interface VimSdk {
+  ehr: VimEhr;
+}
+
+declare global {
+  interface Window {
+    vimSdk?: VimSdk;
+  }
+}
