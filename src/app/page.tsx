@@ -10,6 +10,12 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Tell Vim Hub we're ready immediately, regardless of auth state
+    const sdk = window.vimSdk;
+    if (sdk?.hub?.setActivationStatus) {
+      sdk.hub.setActivationStatus("ENABLED");
+    }
+
     const supabase = getSupabase();
 
     supabase.auth.getSession().then(({ data: { session } }) => {
