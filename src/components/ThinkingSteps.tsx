@@ -32,14 +32,15 @@ export default function ThinkingSteps({
 
   return (
     <div className="py-2">
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence>
         {showSteps && (
           <motion.div
             key="steps"
-            initial={{ opacity: 1 }}
+            initial={{ opacity: 1, height: "auto" }}
+            animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0, marginBottom: 0 }}
             transition={{ duration: 0.2 }}
-            className="mb-2"
+            className="mb-2 overflow-hidden"
           >
             <AnimatePresence mode="popLayout" initial={false}>
               {windowedSteps.map((step) => (
