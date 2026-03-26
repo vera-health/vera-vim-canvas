@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const launchId = req.nextUrl.searchParams.get("launch_id");
 
   if (!launchId) {
-    return new Response("Missing launch_id", { status: 400 });
+    return Response.json({ error: "Missing launch_id" }, { status: 400 });
   }
 
   const origin = req.nextUrl.origin;

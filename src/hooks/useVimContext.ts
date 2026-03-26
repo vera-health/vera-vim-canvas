@@ -47,47 +47,34 @@ export function useVimContext(): VimContextValue {
       setVitals([]);
       return;
     }
-    // Each call wrapped individually — one failure shouldn't block the other
-    try {
-      if (typeof p.getProblemList === "function") {
-        const list = await p.getProblemList();
-        setProblems(Array.isArray(list) ? list : []);
-      }
-    } catch {
-      setProblems([]);
-    }
-    try {
-      if (typeof p.getMedicationList === "function") {
-        const list = await p.getMedicationList();
-        setMedications(Array.isArray(list) ? list : []);
-      }
-    } catch {
-      setMedications([]);
-    }
-    try {
-      if (typeof p.getAllergyList === "function") {
-        const list = await p.getAllergyList();
-        setAllergies(Array.isArray(list) ? list : []);
-      }
-    } catch {
-      setAllergies([]);
-    }
-    try {
-      if (typeof p.getLabResults === "function") {
-        const res = await p.getLabResults({ page: 1 });
-        setLabs(Array.isArray(res?.data) ? res.data : []);
-      }
-    } catch {
-      setLabs([]);
-    }
-    try {
-      if (typeof p.getVitals === "function") {
-        const res = await p.getVitals({ page: 1 });
-        setVitals(Array.isArray(res?.data) ? res.data : []);
-      }
-    } catch {
-      setVitals([]);
-    }
+    // Fetch all lists in parallel — one failure shouldn't block the others
+    const [problemsResult, medsResult, allergiesResult, labsResult, vitalsResult] =
+      await Promise.allSettled([
+        typeof p.getProblemList === "function" ? p.getProblemList() : Promise.resolve([]),
+        typeof p.getMedicationList === "function" ? p.getMedicationList() : Promise.resolve([]),
+        typeof p.getAllergyList === "function" ? p.getAllergyList() : Promise.resolve([]),
+        typeof p.getLabResults === "function" ? p.getLabResults({ page: 1 }) : Promise.resolve(null),
+        typeof p.getVitals === "function" ? p.getVitals({ page: 1 }) : Promise.resolve(null),
+      ]);
+
+    const toArray = <T,>(r: PromiseSettledResult<T[] | T | null | undefined>): T[] => {
+      if (r.status === "rejected") return [];
+      return Array.isArray(r.value) ? r.value : [];
+    };
+
+    setProblems(toArray(problemsResult));
+    setMedications(toArray(medsResult));
+    setAllergies(toArray(allergiesResult));
+    setLabs(
+      labsResult.status === "fulfilled" && labsResult.value && typeof labsResult.value === "object" && "data" in labsResult.value
+        ? Array.isArray(labsResult.value.data) ? labsResult.value.data : []
+        : [],
+    );
+    setVitals(
+      vitalsResult.status === "fulfilled" && vitalsResult.value && typeof vitalsResult.value === "object" && "data" in vitalsResult.value
+        ? Array.isArray(vitalsResult.value.data) ? vitalsResult.value.data : []
+        : [],
+    );
   }, []);
 
   useEffect(() => {
