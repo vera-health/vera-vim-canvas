@@ -69,7 +69,7 @@ function Tooltip({ label, children }: { label: string; children: React.ReactNode
 }
 
 export function ChatView() {
-  const { patient, encounter, problems, medications } = useVimContext();
+  const { patient, encounter, problems, medications, allergies, labs, vitals } = useVimContext();
   const { messages, isStreaming, sendMessage, stopStream, resetChat } = useVeraChat();
   const {
     state: whisperState,
@@ -143,13 +143,13 @@ export function ChatView() {
         if (input.trim() && !isStreaming) {
           const text = input.trim();
           setInput("");
-          sendMessage(text, formatEhrContext(patient, encounter));
+          sendMessage(text, formatEhrContext(patient, encounter, problems, medications, allergies, labs, vitals));
         }
       }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [whisperState, isStreaming, micSupported, input, patient, encounter, startRecording, cancelRecording, stopAndTranscribe, sendMessage]);
+  }, [whisperState, isStreaming, micSupported, input, patient, encounter, problems, medications, allergies, labs, vitals, startRecording, cancelRecording, stopAndTranscribe, sendMessage]);
 
   const handleScroll = useCallback(() => {
     const el = scrollContainerRef.current;
@@ -181,7 +181,7 @@ export function ChatView() {
     const text = input.trim();
     if (!text || isStreaming) return;
     setInput("");
-    sendMessage(text, formatEhrContext(patient, encounter, problems, medications));
+    sendMessage(text, formatEhrContext(patient, encounter, problems, medications, allergies, labs, vitals));
   }
 
   async function handleLogout() {
@@ -197,7 +197,7 @@ export function ChatView() {
 
   function handleSampleClick(question: string) {
     if (isStreaming) return;
-    sendMessage(question, formatEhrContext(patient, encounter, problems, medications));
+    sendMessage(question, formatEhrContext(patient, encounter, problems, medications, allergies, labs, vitals));
   }
 
   return (
@@ -334,7 +334,7 @@ export function ChatView() {
                   if (input.trim() && !isStreaming) {
                     const text = input.trim();
                     setInput("");
-                    sendMessage(text, formatEhrContext(patient, encounter, problems, medications));
+                    sendMessage(text, formatEhrContext(patient, encounter, problems, medications, allergies, labs, vitals));
                   }
                 }
               }}
