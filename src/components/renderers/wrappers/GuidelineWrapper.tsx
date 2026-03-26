@@ -1,7 +1,7 @@
 "use client";
 
-import React, {useId, useState} from "react";
-import {FileText, Copy, Check} from "lucide-react";
+import React, {useId, useRef, useState} from "react";
+import {Copy, Check} from "lucide-react";
 
 interface GuidelineWrapperProps {
   children: React.ReactNode;
@@ -11,13 +11,11 @@ interface GuidelineWrapperProps {
 export const GuidelineWrapper: React.FC<GuidelineWrapperProps> = ({children, authority}) => {
   const contentId = useId();
   const [isCopied, setIsCopied] = useState(false);
-
-  const displayTitle = authority || "Clinical Guideline";
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const handleCopyClick = async () => {
     try {
-      const contentElement = document.getElementById(contentId);
-      const contentText = contentElement?.innerText?.trim() || "";
+      const contentText = contentRef.current?.innerText?.trim() || "";
       if (!contentText) return;
       await navigator.clipboard.writeText(contentText);
       setIsCopied(true);
@@ -27,33 +25,35 @@ export const GuidelineWrapper: React.FC<GuidelineWrapperProps> = ({children, aut
     }
   };
 
+  const footerLabel = authority
+    ? `Clinical Guideline · ${authority}`
+    : "Clinical Guideline";
+
   return (
-    <div className="mx-auto my-4 w-full max-w-2xl">
-      {/* Header */}
-      <div className="rounded-t-lg border-b border-dashed px-3 py-2" style={{ borderColor: "#93bed0", backgroundColor: "#e3eef3" }}>
-        <div className="flex w-full items-center justify-between">
-          <span className="flex items-center text-sm font-medium" style={{ color: "#155f7c" }}>
-            <FileText className="mr-1.5 h-4 w-4" style={{ color: "#1b779b" }} />
-            {displayTitle}
-          </span>
-          <button
-            className="rounded p-1 hover:bg-blue-100"
-            title="Copy"
-            type="button"
-            onClick={handleCopyClick}
-          >
-            {isCopied ? (
-              <Check className="h-4 w-4 text-gray-600" />
-            ) : (
-              <Copy className="h-4 w-4 text-gray-600" />
-            )}
-          </button>
-        </div>
+    <div className="group/guideline relative my-4 border-l-2 pl-4" style={{borderColor: "#1b779b"}}>
+      {/* Header label */}
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-xs" style={{color: "var(--vera-grey-400)"}}>
+          {footerLabel}
+        </span>
+        <button
+          className="rounded p-1 opacity-0 transition-opacity group-hover/guideline:opacity-100 hover:bg-gray-100"
+          title="Copy"
+          type="button"
+          onClick={handleCopyClick}
+        >
+          {isCopied ? (
+            <Check className="h-3.5 w-3.5" style={{color: "var(--vera-grey-400)"}} />
+          ) : (
+            <Copy className="h-3.5 w-3.5" style={{color: "var(--vera-grey-400)"}} />
+          )}
+        </button>
       </div>
 
       {/* Content */}
       <div
-        className="rounded-b-lg border-x border-b border-gray-200 p-4 [&>*+*]:mt-4 [&>*+*]:border-t [&>*+*]:border-gray-200 [&>*+*]:pt-4"
+        ref={contentRef}
+        className="[&>*+*]:mt-3 [&>*+*]:border-t [&>*+*]:border-gray-100 [&>*+*]:pt-3"
         id={contentId}
       >
         {children}
