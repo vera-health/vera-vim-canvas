@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 
 const VERA_API_URL =
   process.env.NEXT_PUBLIC_VERA_API_URL || "http://localhost:3000";
+const BYPASS_TOKEN = process.env.VERA_VERCEL_BYPASS_TOKEN || "";
 
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
@@ -11,12 +12,18 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
 
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    Authorization: authHeader,
+  };
+
+  if (BYPASS_TOKEN) {
+    headers["x-vercel-protection-bypass"] = BYPASS_TOKEN;
+  }
+
   const veraRes = await fetch(`${VERA_API_URL}/api/chat`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: authHeader,
-    },
+    headers,
     body: JSON.stringify(body),
   });
 
