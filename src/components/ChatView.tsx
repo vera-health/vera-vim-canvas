@@ -1,16 +1,53 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUp, Square } from "lucide-react";
+import { ArrowUp, Square, RotateCcw, Settings, LogOut, MessageSquare } from "lucide-react";
 import { useVimContext } from "@/hooks/useVimContext";
 import { useVeraChat } from "@/hooks/useVeraChat";
 import { formatEhrContext } from "@/utils/formatContext";
 import { Message } from "@/components/Message";
+import { ReferenceTooltipDisplay } from "@/components/renderers/ReferenceTooltip";
+import { getSupabase } from "@/utils/supabase";
+
+function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<"bottom" | "bottom-left">("bottom");
+
+  const recalc = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setPos(rect.right + 60 > window.innerWidth ? "bottom-left" : "bottom");
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className="group relative inline-flex"
+      onMouseEnter={recalc}
+    >
+      {children}
+      <span
+        className="pointer-events-none absolute z-50 whitespace-nowrap rounded-md px-2 py-1 text-xs font-medium opacity-0 transition-opacity group-hover:opacity-100"
+        style={{
+          backgroundColor: "#1a1a1a",
+          color: "#fff",
+          top: "calc(100% + 6px)",
+          ...(pos === "bottom-left" ? { right: 0 } : { left: "50%", transform: "translateX(-50%)" }),
+        }}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
 
 export function ChatView() {
   const { patient, encounter } = useVimContext();
-  const { messages, isStreaming, sendMessage, stopStream } = useVeraChat();
+  const { messages, isStreaming, sendMessage, stopStream, resetChat } = useVeraChat();
   const [input, setInput] = useState("");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const userScrolledUp = useRef(false);
@@ -28,6 +65,18 @@ export function ChatView() {
     }
   }, [messages]);
 
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
+        setSettingsOpen(false);
+      }
+    }
+    if (settingsOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [settingsOpen]);
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const text = input.trim();
@@ -36,9 +85,10 @@ export function ChatView() {
     sendMessage(text, formatEhrContext(patient, encounter));
   }
 
-  const patientName = [patient?.firstName, patient?.lastName]
-    .filter(Boolean)
-    .join(" ");
+  async function handleLogout() {
+    setSettingsOpen(false);
+    await getSupabase().auth.signOut();
+  }
 
   const sampleQuestions = [
     "Summarize this patient's active problems",
@@ -53,19 +103,70 @@ export function ChatView() {
 
   return (
     <div className="flex h-screen flex-col" style={{ backgroundColor: "#FFFFFF" }}>
+      <ReferenceTooltipDisplay />
       {/* Header */}
-      <div className="px-4 py-3" style={{ borderBottom: "1px solid #EDF2F7" }}>
+      <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: "1px solid #EDF2F7" }}>
         <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full" style={{ backgroundColor: "#1b779b" }} />
-          <span className="text-sm font-semibold" style={{ color: "#37475E" }}>
-            Vera
-          </span>
+          <img src="/vera-icon.png" alt="Vera" style={{ height: 24 }} />
+          <span className="text-sm font-semibold" style={{ color: "#37475E" }}>Vera Health</span>
         </div>
-        {patientName && (
-          <div className="mt-1 text-xs" style={{ color: "#687076" }}>
-            Patient: {patientName}
+        <div className="flex items-center gap-1">
+          <Tooltip label="New conversation">
+            <button
+              type="button"
+              onClick={resetChat}
+              className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-gray-100"
+              style={{ color: "#687076" }}
+            >
+              <RotateCcw className="h-4 w-4" />
+            </button>
+          </Tooltip>
+          <div ref={settingsRef} className="relative">
+            <Tooltip label="Settings">
+              <button
+                type="button"
+                onClick={() => setSettingsOpen((v) => !v)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-gray-100"
+                style={{ color: "#687076" }}
+              >
+                <Settings className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            {settingsOpen && (
+              <div
+                className="absolute right-0 z-50 mt-1 w-44 rounded-xl border py-1"
+                style={{
+                  top: "100%",
+                  backgroundColor: "#fff",
+                  borderColor: "#EDF2F7",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSettingsOpen(false);
+                    window.open("mailto:support@verahealth.ai?subject=Vera%20Feedback", "_blank");
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-gray-50"
+                  style={{ color: "#37475E" }}
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Send Feedback
+                </button>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-gray-50"
+                  style={{ color: "#37475E" }}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Log Out
+                </button>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Messages */}

@@ -26,6 +26,8 @@ export type StreamCallbacks = {
   onSearchProgress?: (data: { category: string; total: number }) => void;
   onSearchProgressSummary?: (data: { total: number }) => void;
   onSuggestedQuestions?: (questions: string[]) => void;
+  onReferences?: (refs: any[]) => void;
+  onEvidenceLevels?: (levels: Record<string, any>) => void;
 };
 
 export async function consumeVeraStream(
@@ -33,7 +35,11 @@ export async function consumeVeraStream(
   callbacks: StreamCallbacks,
   signal?: AbortSignal,
 ): Promise<void> {
-  const reader = response.body!.getReader();
+  if (!response.body) {
+    console.error("[Vera] consumeVeraStream: response.body is null");
+    return;
+  }
+  const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
   let threadId = "";
@@ -133,6 +139,13 @@ export async function consumeVeraStream(
               break;
             }
 
+            case "data-references":
+              callbacks.onReferences?.(event.references ?? event.data);
+              break;
+
+            case "data-evidence-levels":
+              callbacks.onEvidenceLevels?.(event.evidenceLevels ?? event.data);
+              break;
           }
         } catch {
           // Malformed JSON line, skip

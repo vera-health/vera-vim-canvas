@@ -36,18 +36,29 @@ export default function Page() {
     // Supabase auth (always required — Vera API needs the token)
     const supabase = getSupabase();
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+      })
+      .catch((err) => {
+        console.error("[Vera] Failed to get session:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
+    let subscription: { unsubscribe: () => void } | undefined;
+    try {
+      const result = supabase.auth.onAuthStateChange((_event, session) => {
+        setSession(session);
+      });
+      subscription = result.data.subscription;
+    } catch (err) {
+      console.error("[Vera] Failed to subscribe to auth changes:", err);
+    }
 
-    return () => subscription.unsubscribe();
+    return () => subscription?.unsubscribe();
   }, []);
 
   if (loading)

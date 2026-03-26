@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import type { VeraRoot } from "@/types/customAST";
 import type { ThinkingState, ThinkingStep } from "@/types/chat";
 import { getSupabase } from "@/utils/supabase";
+import type { ReferenceSchema } from "@/types/references";
 import { consumeVeraStream } from "@/utils/vera-stream";
 import { parseCompleteMarkdown, parsePartialMarkdown } from "@/utils/mdast/parsers";
 
@@ -17,6 +18,8 @@ export type Message = {
   mdast?: VeraRoot;
   thinking?: ThinkingState;
   suggestedQuestions?: string[];
+  references?: ReferenceSchema[];
+  evidenceLevels?: Record<string, any>;
 };
 
 function defaultThinkingState(): ThinkingState {
@@ -169,6 +172,10 @@ export function useVeraChat() {
           onDynamicReasoningStep(step) {
             updateThinking(assistantId, (t) => {
               const newSteps = [...t.steps];
+              // Pad with placeholder steps to avoid sparse array holes
+              for (let i = newSteps.length; i <= step.index; i++) {
+                newSteps[i] = { text: "", status: "pending", reasoning: "" };
+              }
               newSteps[step.index] = {
                 text: step.title || step.text,
                 status: "active",
@@ -243,6 +250,24 @@ export function useVeraChat() {
               ),
             );
           },
+
+          onReferences(refs) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId ? { ...m, references: refs } : m,
+              ),
+            );
+          },
+
+          onEvidenceLevels(levels) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId
+                  ? { ...m, evidenceLevels: { ...m.evidenceLevels, ...levels } }
+                  : m,
+              ),
+            );
+          },
         }, controller.signal);
 
         // Final parse with complete markdown
@@ -302,5 +327,13 @@ export function useVeraChat() {
     abortRef.current?.abort();
   }, []);
 
-  return { messages, isStreaming, sendMessage, stopStream };
+  const resetChat = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setMessages([]);
+    setIsStreaming(false);
+    threadIdRef.current = null;
+  }, []);
+
+  return { messages, isStreaming, sendMessage, stopStream, resetChat };
 }

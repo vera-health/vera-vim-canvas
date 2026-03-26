@@ -21,10 +21,10 @@ export const GuidelineReferencesSection: React.FC<GuidelineReferencesSectionProp
   if (usedReferences.length === 0) return null;
 
   return (
-    <div className="mt-4 border-t border-gray-200 pt-4">
-      <div className="space-y-3">
+    <div className="mt-3 border-t border-gray-100 pt-3">
+      <div className="space-y-2">
         {usedReferences.map((reference, idx) => (
-          <div key={reference.id ?? idx} className="text-base">
+          <div key={reference.id ?? idx} className="text-[13px]">
             <a
               className="font-medium hover:underline" style={{ color: "#1b779b" }}
               href={
