@@ -11,8 +11,8 @@ interface PatientMaterialWrapperProps {
 export const PatientMaterialWrapper: React.FC<PatientMaterialWrapperProps> = ({children}) => {
   const contentId = useId();
   const [isCopied, setIsCopied] = useState(false);
-  const {canWrite, writeToEncounter, writeStatus} = useVimWriter();
-  const showSendToChart = canWrite("patientInstructions");
+  const {getWriteAvailability, writeToEncounter, writeStatus} = useVimWriter();
+  const availability = getWriteAvailability("patientInstructions");
 
   const handleCopyClick = async () => {
     try {
@@ -55,6 +55,7 @@ export const PatientMaterialWrapper: React.FC<PatientMaterialWrapperProps> = ({c
   };
 
   const sendTitle = () => {
+    if (availability === "unavailable") return "Not available for this EHR";
     switch (writeStatus) {
       case "writing":
         return "Sending to chart...";
@@ -67,6 +68,11 @@ export const PatientMaterialWrapper: React.FC<PatientMaterialWrapperProps> = ({c
     }
   };
 
+  const isDisabled =
+    writeStatus === "writing" ||
+    writeStatus === "success" ||
+    availability === "unavailable";
+
   return (
     <div className="mx-auto my-4 w-full max-w-2xl">
       {/* Header */}
@@ -77,17 +83,15 @@ export const PatientMaterialWrapper: React.FC<PatientMaterialWrapperProps> = ({c
             Patient Handout
           </span>
           <div className="flex items-center gap-1">
-            {showSendToChart && (
-              <button
-                className="rounded p-1 hover:bg-gray-200 disabled:opacity-50"
-                title={sendTitle()}
-                type="button"
-                onClick={handleSendToChart}
-                disabled={writeStatus === "writing" || writeStatus === "success"}
-              >
-                {sendIcon()}
-              </button>
-            )}
+            <button
+              className="rounded p-1 hover:bg-gray-200 disabled:opacity-50"
+              title={sendTitle()}
+              type="button"
+              onClick={handleSendToChart}
+              disabled={isDisabled}
+            >
+              {sendIcon()}
+            </button>
             <button
               className="rounded p-1 hover:bg-gray-200"
               title="Copy"
