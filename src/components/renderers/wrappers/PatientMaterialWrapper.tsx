@@ -76,10 +76,10 @@ export const PatientMaterialWrapper: React.FC<PatientMaterialWrapperProps> = ({c
   return (
     <div className="mx-auto my-4 w-full max-w-2xl">
       {/* Header */}
-      <div className="rounded-t-lg border-b border-dashed px-3 py-2" style={{ borderColor: "#93bed0", backgroundColor: "#e3eef3" }}>
+      <div className="rounded-t-lg px-3 py-2" style={{backgroundColor: "#faf4eb"}}>
         <div className="flex w-full items-center justify-between">
-          <span className="flex items-center text-sm font-medium" style={{ color: "#155f7c" }}>
-            <FileText className="mr-1.5 h-4 w-4" style={{ color: "#1b779b" }} />
+          <span className="flex items-center text-sm font-medium" style={{color: "#8a5d12"}}>
+            <FileText className="mr-1.5 h-4 w-4" style={{color: "#b47818"}} />
             Patient Handout
           </span>
           <div className="flex items-center gap-1">
