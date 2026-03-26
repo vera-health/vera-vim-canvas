@@ -93,10 +93,10 @@ function ArrowsOutIcon() {
 function ArrowsInIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="4 10 0 10 0 14" />
-      <polyline points="12 6 16 6 16 2" />
-      <line x1="0" y1="10" x2="4.5" y2="5.5" />
-      <line x1="16" y1="6" x2="11.5" y2="10.5" />
+      <polyline points="14 9.5 9.5 9.5 9.5 14" />
+      <polyline points="2 6.5 6.5 6.5 6.5 2" />
+      <line x1="14" y1="14" x2="9.5" y2="9.5" />
+      <line x1="2" y1="2" x2="6.5" y2="6.5" />
     </svg>
   );
 }
