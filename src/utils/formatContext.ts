@@ -34,17 +34,49 @@ export function formatEhrContext(
     const info = encounter.basicInformation;
     const items = [
       info?.encounterDateOfService,
+      info?.type,
+      info?.status && `Status: ${info.status}`,
       encounter.subjective?.chiefComplaintNotes &&
         `Chief complaint: ${encounter.subjective.chiefComplaintNotes}`,
     ].filter(Boolean);
     if (items.length) parts.push(`[Encounter: ${items.join(" — ")}]`);
 
+    if (encounter.subjective?.historyOfPresentIllnessNotes) {
+      parts.push(`[HPI: ${encounter.subjective.historyOfPresentIllnessNotes}]`);
+    }
+    if (encounter.subjective?.reviewOfSystemsNotes) {
+      parts.push(`[Review of Systems: ${encounter.subjective.reviewOfSystemsNotes}]`);
+    }
+    if (encounter.subjective?.generalNotes) {
+      parts.push(`[Subjective Notes: ${encounter.subjective.generalNotes}]`);
+    }
+
+    if (encounter.objective?.physicalExamNotes) {
+      parts.push(`[Physical Exam: ${encounter.objective.physicalExamNotes}]`);
+    }
+    if (encounter.objective?.generalNotes) {
+      parts.push(`[Objective Notes: ${encounter.objective.generalNotes}]`);
+    }
+
+    if (encounter.assessment?.generalNotes) {
+      parts.push(`[Assessment: ${encounter.assessment.generalNotes}]`);
+    }
     const dx = encounter.assessment?.diagnosisCodes;
     if (dx?.length) {
       const formatted = dx
         .map((d) => `${d.description || d.code} (${d.code})`)
         .join(", ");
       parts.push(`[Encounter Diagnoses: ${formatted}]`);
+    }
+
+    if (encounter.plan?.generalNotes) {
+      parts.push(`[Plan: ${encounter.plan.generalNotes}]`);
+    }
+    if (encounter.patientInstructions?.generalNotes) {
+      parts.push(`[Patient Instructions: ${encounter.patientInstructions.generalNotes}]`);
+    }
+    if (encounter.encounterNotes?.generalNotes) {
+      parts.push(`[Encounter Notes: ${encounter.encounterNotes.generalNotes}]`);
     }
   }
 
