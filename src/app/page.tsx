@@ -15,30 +15,25 @@ export default function Page() {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [vimOS, setVimOS] = useState<VimOS | null>(null);
-  const [isVimEnv, setIsVimEnv] = useState(false);
 
   useEffect(() => {
-    // Initialize VimOS SDK
+    // Initialize VimOS SDK (non-blocking, runs in parallel with auth)
     async function initVim() {
       const sdk = window.vimSdk;
       if (!sdk?.initializeVimSDK) return;
       try {
-        setIsVimEnv(true);
         const os = await sdk.initializeVimSDK();
         if (os?.hub?.setActivationStatus) {
           os.hub.setActivationStatus("ENABLED");
         }
         setVimOS(os);
-        // Inside Vim, skip Supabase auth — user already authenticated via Vim OAuth
-        setLoading(false);
       } catch (e) {
         console.error("VimOS init failed:", e);
-        setLoading(false);
       }
     }
     initVim();
 
-    // Supabase auth (for standalone usage outside Vim)
+    // Supabase auth (always required — Vera API needs the token)
     const supabase = getSupabase();
 
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -62,13 +57,9 @@ export default function Page() {
       </div>
     );
 
-  // Inside Vim: always show chat (authenticated via Vim OAuth)
-  // Outside Vim: require Supabase login
-  const authenticated = isVimEnv || session;
-
   return (
     <VimContext value={vimOS}>
-      {authenticated ? <ChatView /> : <LoginView />}
+      {session ? <ChatView /> : <LoginView />}
     </VimContext>
   );
 }
