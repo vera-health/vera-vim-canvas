@@ -4,8 +4,6 @@ import { useCallback, useRef, useState } from "react";
 import { getSupabase } from "@/utils/supabase";
 import { consumeVeraStream } from "@/utils/vera-stream";
 
-const VERA_API_URL =
-  process.env.NEXT_PUBLIC_VERA_API_URL || "http://localhost:3000";
 
 export type Message = {
   id: string;
@@ -46,7 +44,7 @@ export function useVeraChat() {
           throw new Error("Not authenticated");
         }
 
-        const res = await fetch(`${VERA_API_URL}/api/chat`, {
+        const res = await fetch(`/api/chat`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
