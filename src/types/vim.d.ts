@@ -69,6 +69,45 @@ export interface VimPaginationResponse<T> {
   };
 }
 
+// ---- Orders ----------------------------------------------------------------
+
+export type VimOrderType = "LAB" | "DI" | "PROCEDURE" | "RX";
+
+export interface VimOrder {
+  identifiers?: { ehrOrderId?: string };
+  basicInformation?: {
+    type?: VimOrderType;
+    ehrEncounterId?: string;
+    createdDate?: string;
+    notes?: string;
+    orderName?: string;
+    reason?: string;
+  };
+  assessments?: { assessments?: VimDiagnosis[] };
+  medications?: VimMedication[];
+}
+
+// ---- Referral --------------------------------------------------------------
+
+export interface VimReferral {
+  identifiers?: { ehrReferralId?: string; vimReferralId?: string };
+  basicInformation?: {
+    specialty?: string;
+    startDate?: string;
+    endDate?: string;
+    createdDate?: string;
+    status?: "DRAFT" | "SIGNED" | "DELETED";
+    priority?: "ROUTINE" | "URGENT" | "STAT";
+    authCode?: string;
+    isLocked?: boolean;
+    reasons?: string[];
+    notes?: string;
+    facilityName?: string;
+    numberOfVisits?: number;
+  };
+  conditions?: { diagnosis?: VimDiagnosis[] };
+}
+
 // ---- Patient ---------------------------------------------------------------
 
 export interface VimEhrPatient {
@@ -319,13 +358,15 @@ export interface CanUpdateOrderParams {
 
 // ---- EHR API ---------------------------------------------------------------
 
-type EhrResource = "patient" | "encounter";
+type EhrResource = "patient" | "encounter" | "orders" | "referral" | "claim";
 type UpdatableResource = "encounter" | "referral" | "orders";
 
 export interface VimEhr {
   ehrState: {
     patient: VimEhrPatient | null;
     encounter: VimEhrEncounter | null;
+    orders?: VimOrder[] | null;
+    referral?: VimReferral | null;
   };
   subscribe(
     resource: EhrResource,
@@ -351,6 +392,10 @@ export type ApplicationSize = "CLASSIC" | "LARGE" | "EXTRA_LARGE";
 export interface VimHub {
   setActivationStatus(status: ActivationStatus): void;
   setDynamicAppSize?(size: ApplicationSize): void;
+  notificationBadge?: {
+    set(count: number): void;
+    hide(): void;
+  };
 }
 
 // ---- Workflow events -------------------------------------------------------

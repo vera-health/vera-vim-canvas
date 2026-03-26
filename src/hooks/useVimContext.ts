@@ -10,6 +10,8 @@ import type {
   VimAllergy,
   VimLabResult,
   VimVital,
+  VimOrder,
+  VimReferral,
 } from "@/types/vim";
 
 export interface VimContextValue {
@@ -20,6 +22,8 @@ export interface VimContextValue {
   allergies: VimAllergy[];
   labs: VimLabResult[];
   vitals: VimVital[];
+  orders: VimOrder[];
+  referral: VimReferral | null;
 }
 
 export function useVimContext(): VimContextValue {
@@ -31,6 +35,8 @@ export function useVimContext(): VimContextValue {
   const [allergies, setAllergies] = useState<VimAllergy[]>([]);
   const [labs, setLabs] = useState<VimLabResult[]>([]);
   const [vitals, setVitals] = useState<VimVital[]>([]);
+  const [orders, setOrders] = useState<VimOrder[]>([]);
+  const [referral, setReferral] = useState<VimReferral | null>(null);
 
   const loadLists = useCallback(async (p: VimEhrPatient | null) => {
     if (!p) {
@@ -105,6 +111,19 @@ export function useVimContext(): VimContextValue {
       // stay null
     }
 
+    try {
+      const initialOrders = ehr.ehrState?.orders;
+      setOrders(Array.isArray(initialOrders) ? initialOrders : []);
+    } catch {
+      // stay empty
+    }
+
+    try {
+      setReferral(ehr.ehrState?.referral ?? null);
+    } catch {
+      // stay null
+    }
+
     // ---- Subscriptions for live updates ----
     const unsubs: Array<() => void> = [];
 
@@ -115,6 +134,14 @@ export function useVimContext(): VimContextValue {
 
     const onEncounter = (e: VimEhrEncounter | null) => {
       setEncounter(e);
+    };
+
+    const onOrders = (o: VimOrder[] | null) => {
+      setOrders(Array.isArray(o) ? o : []);
+    };
+
+    const onReferral = (r: VimReferral | null) => {
+      setReferral(r);
     };
 
     try {
@@ -132,6 +159,20 @@ export function useVimContext(): VimContextValue {
             ehr.unsubscribe("encounter", onEncounter);
           } catch { /* ignore */ }
         });
+
+        ehr.subscribe("orders", onOrders);
+        unsubs.push(() => {
+          try {
+            ehr.unsubscribe("orders", onOrders);
+          } catch { /* ignore */ }
+        });
+
+        ehr.subscribe("referral", onReferral);
+        unsubs.push(() => {
+          try {
+            ehr.unsubscribe("referral", onReferral);
+          } catch { /* ignore */ }
+        });
       }
     } catch {
       // subscribe not available — rely on initial values
@@ -142,5 +183,5 @@ export function useVimContext(): VimContextValue {
     };
   }, [vimOS, loadLists]);
 
-  return { patient, encounter, problems, medications, allergies, labs, vitals };
+  return { patient, encounter, problems, medications, allergies, labs, vitals, orders, referral };
 }

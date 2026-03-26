@@ -6,10 +6,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useVimContext } from "@/hooks/useVimContext";
 import { useVeraChat } from "@/hooks/useVeraChat";
 import { useWhisper } from "@/hooks/useWhisper";
+import { useEhrNotifications } from "@/hooks/useEhrNotifications";
+import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
 import { formatEhrContext } from "@/utils/formatContext";
 import { Message } from "@/components/Message";
 import { ReferenceTooltipDisplay } from "@/components/renderers/ReferenceTooltip";
 import { getSupabase } from "@/utils/supabase";
+import { ALL_NOTIFICATION_TYPES, NOTIFICATION_TYPE_LABELS } from "@/types/notification";
 import { Tooltip } from "@/components/Tooltip";
 
 export function ChatView() {
@@ -27,6 +30,11 @@ export function ChatView() {
     cancelRecording,
     clearTranscription,
   } = useWhisper();
+  const {
+    activeSuggestedQuestions,
+    activePromptText,
+  } = useEhrNotifications();
+  const { preferences, toggleType } = useNotificationPreferences();
   const [input, setInput] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
@@ -133,11 +141,7 @@ export function ChatView() {
     await getSupabase().auth.signOut();
   }
 
-  const sampleQuestions = [
-    "Summarize this patient's active problems",
-    "Write patient instructions for this visit",
-    "What are the latest guidelines on Type 2 Diabetes management?",
-  ];
+  const sampleQuestions = activeSuggestedQuestions;
 
   function handleSampleClick(question: string) {
     if (isStreaming) return;
@@ -206,6 +210,44 @@ export function ChatView() {
                   <LogOut className="h-4 w-4" />
                   Log Out
                 </button>
+                <div style={{ borderTop: "1px solid #EDF2F7" }} className="px-3 py-2">
+                  <span
+                    className="text-xs font-semibold"
+                    style={{ color: "#8090A6", fontFamily: "Manrope, system-ui, sans-serif" }}
+                  >
+                    Notifications
+                  </span>
+                  {ALL_NOTIFICATION_TYPES.map((type) => (
+                    <label
+                      key={type}
+                      className="mt-1.5 flex cursor-pointer items-center justify-between"
+                    >
+                      <span
+                        className="text-xs"
+                        style={{ color: "#37475E", fontFamily: "Manrope, system-ui, sans-serif" }}
+                      >
+                        {NOTIFICATION_TYPE_LABELS[type]}
+                      </span>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={preferences.enabled[type]}
+                        onClick={() => toggleType(type)}
+                        className="relative h-5 w-9 rounded-full transition-colors"
+                        style={{
+                          backgroundColor: preferences.enabled[type] ? "#486081" : "#D1D5DB",
+                        }}
+                      >
+                        <span
+                          className="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform"
+                          style={{
+                            transform: preferences.enabled[type] ? "translateX(16px)" : "translateX(0)",
+                          }}
+                        />
+                      </button>
+                    </label>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -221,7 +263,7 @@ export function ChatView() {
         {messages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center gap-4">
             <span className="text-sm" style={{ color: "#8090A6" }}>
-              Ask Vera anything about your patient
+              {activePromptText}
             </span>
             <div className="flex flex-col gap-2 w-full max-w-xs">
               {sampleQuestions.map((q) => (
