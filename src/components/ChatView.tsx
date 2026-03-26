@@ -47,11 +47,13 @@ export function ChatView() {
   useEffect(() => {
     const ta = textareaRef.current;
     if (!ta) return;
-    ta.style.height = "auto";
     const lineHeight = 20;
     const padding = 16; // 8px top + 8px bottom
+    const singleRowHeight = lineHeight + padding;
     const maxHeight = lineHeight * 6 + padding;
-    ta.style.height = `${Math.min(ta.scrollHeight, maxHeight)}px`;
+    ta.style.height = "auto";
+    const targetHeight = input ? Math.min(ta.scrollHeight, maxHeight) : singleRowHeight;
+    ta.style.height = `${targetHeight}px`;
     ta.style.overflowY = ta.scrollHeight > maxHeight ? "auto" : "hidden";
   }, [input]);
 
