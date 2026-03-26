@@ -89,3 +89,23 @@
 .vera-prose a {
   color: #2563EB;
 }
+
+/* Dictation waveform bars */
+.waveform-bar {
+  width: 2.5px;
+  border-radius: 9999px;
+  background-color: rgba(0, 0, 0, 0.6);
+  transition: height 0.1s ease-out;
+}
+
+.waveform-container {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  justify-content: center;
+  mask-image: linear-gradient(to right, transparent, black 6px, black calc(100% - 6px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 6px, black calc(100% - 6px), transparent);
+}
