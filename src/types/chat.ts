@@ -8,6 +8,7 @@ export type ThinkingState = {
   steps: ThinkingStep[];
   searchReasoning: string;
   sourceCount: number;
+  searchProgressByCategory: Record<string, number>;
   searchDone: boolean;
   isThinking: boolean;
   startedAt: number | null;

@@ -43,6 +43,27 @@
   --vera-evidence-none: #486081;
 }
 
+/* Shimmer sweep for active thinking steps */
+@keyframes shimmer-sweep {
+  0% { background-position: -100% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer-text {
+  background: linear-gradient(
+    90deg,
+    var(--vera-grey-300) 0%,
+    var(--vera-grey-600) 40%,
+    var(--vera-grey-600) 60%,
+    var(--vera-grey-300) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer-sweep 2.5s ease-in-out infinite;
+}
+
 /* Streaming text fade-in animation */
 @keyframes stream-fade-in {
   from { opacity: 0; }

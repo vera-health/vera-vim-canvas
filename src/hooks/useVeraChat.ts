@@ -29,6 +29,7 @@ function defaultThinkingState(): ThinkingState {
     ],
     searchReasoning: "",
     sourceCount: 0,
+    searchProgressByCategory: {},
     searchDone: false,
     isThinking: true,
     startedAt: Date.now(),
@@ -228,11 +229,15 @@ export function useVeraChat() {
             });
           },
 
-          onSearchProgress({ total }) {
-            updateThinking(assistantId, (t) => ({
-              ...t,
-              sourceCount: total,
-            }));
+          onSearchProgress({ category, total }) {
+            updateThinking(assistantId, (t) => {
+              const updated = { ...t.searchProgressByCategory, [category]: total };
+              return {
+                ...t,
+                searchProgressByCategory: updated,
+                sourceCount: Object.values(updated).reduce((a, b) => a + b, 0),
+              };
+            });
           },
 
           onSearchProgressSummary({ total }) {
