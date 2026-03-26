@@ -19,7 +19,7 @@ export function useVimWriter() {
 
   // Check which encounter fields are writable
   useEffect(() => {
-    if (!vimOS?.canUpdateEncounter) return;
+    if (!vimOS?.ehr?.resourceUpdater?.canUpdateEncounter) return;
 
     try {
       const allFields: CanUpdateEncounterParams = {
@@ -31,7 +31,7 @@ export function useVimWriter() {
         patientInstructions: { generalNotes: true },
         encounterNotes: { generalNotes: true },
       };
-      const result = vimOS.canUpdateEncounter(allFields);
+      const result = vimOS.ehr.resourceUpdater.canUpdateEncounter(allFields);
       if (result?.details) {
         setWritableFields(result.details);
       }
@@ -64,7 +64,7 @@ export function useVimWriter() {
 
   const canWrite = useCallback(
     (section: keyof CanUpdateEncounterParams): boolean => {
-      if (!vimOS?.updateEncounter) return false;
+      if (!vimOS?.ehr?.resourceUpdater?.updateEncounter) return false;
       const sectionFields = writableFields[section];
       if (!sectionFields) return false;
       // Check if at least one field in the section is writable
@@ -75,7 +75,7 @@ export function useVimWriter() {
 
   const writeToEncounter = useCallback(
     async (payload: EncounterUpdatePayload): Promise<void> => {
-      if (!vimOS?.updateEncounter) {
+      if (!vimOS?.ehr?.resourceUpdater?.updateEncounter) {
         throw new Error("updateEncounter not available");
       }
       if (getRemainingWrites() <= 0) {
@@ -84,7 +84,7 @@ export function useVimWriter() {
 
       setWriteStatus("writing");
       try {
-        await vimOS.updateEncounter(payload);
+        await vimOS.ehr.resourceUpdater.updateEncounter(payload);
         sharedWriteTimestamps.push(Date.now());
         setWriteStatus("success");
         setTimeout(() => setWriteStatus("idle"), 2000);
