@@ -9,7 +9,7 @@ import { Message } from "@/components/Message";
 
 export function ChatView() {
   const { patient, encounter } = useVimContext();
-  const { messages, isStreaming, sendMessage } = useVeraChat();
+  const { messages, isStreaming, sendMessage, stopStream } = useVeraChat();
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -96,7 +96,7 @@ export function ChatView() {
             <button
               type="submit"
               disabled={isStreaming ? false : !input.trim()}
-              onClick={isStreaming ? (e) => { e.preventDefault(); /* TODO: stop stream */ } : undefined}
+              onClick={isStreaming ? (e) => { e.preventDefault(); stopStream(); } : undefined}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-opacity disabled:opacity-50"
               style={{
                 backgroundColor: "#486081",

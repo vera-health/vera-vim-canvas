@@ -2,12 +2,24 @@ export async function consumeVeraStream(
   response: Response,
   onDelta: (text: string) => void,
   onFinish: (threadId: string) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
   const reader = response.body!.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
   let threadId = "";
 
+  // If already aborted, cancel immediately
+  if (signal?.aborted) {
+    await reader.cancel();
+    return;
+  }
+
+  // Listen for abort to cancel the reader
+  const onAbort = () => reader.cancel();
+  signal?.addEventListener("abort", onAbort, { once: true });
+
+  try {
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
@@ -44,5 +56,8 @@ export async function consumeVeraStream(
         }
       }
     }
+  }
+  } finally {
+    signal?.removeEventListener("abort", onAbort);
   }
 }
