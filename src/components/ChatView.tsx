@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUp, Square, RotateCcw, Settings, LogOut, MessageSquare, HelpCircle, Mic, X, Check, Maximize2, Minimize2 } from "lucide-react";
+import { ArrowUp, Square, RotateCcw, Settings, LogOut, MessageSquare, HelpCircle, Mic, X, Check, Maximize2, Minimize2, Shield } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useVimContext } from "@/hooks/useVimContext";
 import { useVimOS } from "@/app/page";
@@ -17,6 +17,7 @@ import { getSupabase } from "@/utils/supabase";
 import { ALL_NOTIFICATION_TYPES, NOTIFICATION_TYPE_LABELS } from "@/types/notification";
 import { Tooltip } from "@/components/Tooltip";
 import { HelpScreen } from "@/components/HelpScreen";
+import { AdminPanel } from "@/components/AdminPanel";
 
 export function ChatView() {
   const { patient, encounter, problems, medications, allergies, labs, vitals } = useVimContext();
@@ -43,11 +44,22 @@ export function ChatView() {
   const [input, setInput] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const settingsRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const userScrolledUp = useRef(false);
+
+  // Fetch user email for admin access check
+  useEffect(() => {
+    getSupabase().auth.getSession().then(({ data: { session } }) => {
+      setUserEmail(session?.user?.email ?? null);
+    });
+  }, []);
+
+  const isAdmin = userEmail === "maxime@verahealth.ai";
 
   // Auto-resize textarea up to 6 rows
   useEffect(() => {
@@ -176,6 +188,11 @@ export function ChatView() {
           <HelpScreen onBack={() => setHelpOpen(false)} />
         </div>
       )}
+      {adminOpen && (
+        <div className="absolute inset-0 z-50">
+          <AdminPanel onBack={() => setAdminOpen(false)} />
+        </div>
+      )}
       <ReferenceTooltipDisplay />
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: "1px solid #EDF2F7" }}>
@@ -215,6 +232,20 @@ export function ChatView() {
                   boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
                 }}
               >
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSettingsOpen(false);
+                      setAdminOpen(true);
+                    }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-gray-50"
+                    style={{ color: "#37475E" }}
+                  >
+                    <Shield className="h-4 w-4" />
+                    Admin
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => {
