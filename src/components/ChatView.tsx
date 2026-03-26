@@ -18,6 +18,7 @@ import { ALL_NOTIFICATION_TYPES, NOTIFICATION_TYPE_LABELS } from "@/types/notifi
 import { Tooltip } from "@/components/Tooltip";
 import { HelpScreen } from "@/components/HelpScreen";
 import { AdminPanel } from "@/components/AdminPanel";
+import { SendToEhrPopover } from "@/components/SendToEhrPopover";
 
 export function ChatView() {
   const { patient, encounter, problems, medications, allergies, labs, vitals } = useVimContext();
@@ -355,8 +356,9 @@ export function ChatView() {
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
+        className="relative flex-1 overflow-y-auto px-4 py-4 space-y-4"
       >
+        <SendToEhrPopover containerRef={scrollContainerRef} />
         {messages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center gap-4">
             <span className="text-sm" style={{ color: "#8090A6" }}>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, createContext, useContext } from "react";
+import { loadSdk } from "vim-os-js-browser";
 import { getSupabase } from "@/utils/supabase";
 import { ChatView } from "@/components/ChatView";
 import { LoginView } from "@/components/LoginView";
@@ -17,12 +18,10 @@ export default function Page() {
   const [vimOS, setVimOS] = useState<VimOS | null>(null);
 
   useEffect(() => {
-    // Initialize VimOS SDK (non-blocking, runs in parallel with auth)
+    // Initialize VimOS SDK using the official package (same as demo app)
     async function initVim() {
-      const sdk = window.vimSdk;
-      if (!sdk?.initializeVimSDK) return;
       try {
-        const os = await sdk.initializeVimSDK();
+        const os = (await loadSdk()) as unknown as VimOS;
         if (os?.hub?.setActivationStatus) {
           os.hub.setActivationStatus("ENABLED");
         }
