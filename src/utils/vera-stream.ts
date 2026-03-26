@@ -34,7 +34,11 @@ export async function consumeVeraStream(
   callbacks: StreamCallbacks,
   signal?: AbortSignal,
 ): Promise<void> {
-  const reader = response.body!.getReader();
+  if (!response.body) {
+    console.error("[Vera] consumeVeraStream: response.body is null");
+    return;
+  }
+  const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
   let threadId = "";
