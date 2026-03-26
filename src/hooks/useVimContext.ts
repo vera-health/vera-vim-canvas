@@ -9,7 +9,14 @@ export function useVimContext() {
 
   useEffect(() => {
     const sdk = window.vimSdk;
-    if (!sdk?.ehr) return;
+    if (!sdk) return;
+
+    // Tell Vim Hub we're ready
+    if (sdk.hub?.setActivationStatus) {
+      sdk.hub.setActivationStatus("ENABLED");
+    }
+
+    if (!sdk.ehr) return;
 
     sdk.ehr.patient.get().then(setPatient).catch(() => {});
     sdk.ehr.encounter.get().then(setEncounter).catch(() => {});

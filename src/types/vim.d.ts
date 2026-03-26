@@ -26,8 +26,15 @@ export interface VimEhr {
   };
 }
 
+export type ActivationStatus = "ENABLED" | "DISABLED" | "LOADING";
+
+export interface VimHub {
+  setActivationStatus(status: ActivationStatus): void;
+}
+
 export interface VimSdk {
   ehr: VimEhr;
+  hub?: VimHub;
 }
 
 declare global {
