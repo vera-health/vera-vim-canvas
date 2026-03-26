@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUp, Square, RotateCcw, Settings, LogOut, MessageSquare, Mic, X, Check, Maximize2, Minimize2 } from "lucide-react";
+import { ArrowUp, Square, RotateCcw, Settings, LogOut, MessageSquare, HelpCircle, Mic, X, Check, Maximize2, Minimize2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useVimContext } from "@/hooks/useVimContext";
 import { useVimOS } from "@/app/page";
@@ -16,6 +16,7 @@ import { ReferenceTooltipDisplay } from "@/components/renderers/ReferenceTooltip
 import { getSupabase } from "@/utils/supabase";
 import { ALL_NOTIFICATION_TYPES, NOTIFICATION_TYPE_LABELS } from "@/types/notification";
 import { Tooltip } from "@/components/Tooltip";
+import { HelpScreen } from "@/components/HelpScreen";
 
 export function ChatView() {
   const { patient, encounter, problems, medications, allergies, labs, vitals } = useVimContext();
@@ -41,6 +42,7 @@ export function ChatView() {
   const vimOS = useVimOS();
   const [input, setInput] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -169,6 +171,11 @@ export function ChatView() {
 
   return (
     <div className="flex h-screen flex-col" style={{ backgroundColor: "#FFFFFF" }}>
+      {helpOpen && (
+        <div className="absolute inset-0 z-50">
+          <HelpScreen onBack={() => setHelpOpen(false)} />
+        </div>
+      )}
       <ReferenceTooltipDisplay />
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: "1px solid #EDF2F7" }}>
@@ -208,6 +215,18 @@ export function ChatView() {
                   boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
                 }}
               >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSettingsOpen(false);
+                    setHelpOpen(true);
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-gray-50"
+                  style={{ color: "#37475E" }}
+                >
+                  <HelpCircle className="h-4 w-4" />
+                  What can Vera do?
+                </button>
                 <button
                   type="button"
                   onClick={() => {
