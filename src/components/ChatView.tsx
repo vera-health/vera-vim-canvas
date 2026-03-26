@@ -208,6 +208,7 @@ export function ChatView() {
               msg.role === "assistant" &&
               i === messages.length - 1
             }
+            onQuestionClick={(q) => handleSampleClick(q)}
           />
         ))}
         <div ref={messagesEndRef} />

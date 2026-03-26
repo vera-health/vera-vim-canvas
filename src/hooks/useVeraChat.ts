@@ -17,6 +17,7 @@ export type Message = {
   content: string;
   mdast?: VeraRoot;
   thinking?: ThinkingState;
+  suggestedQuestions?: string[];
   references?: ReferenceSchema[];
   evidenceLevels?: Record<string, any>;
 };
@@ -238,6 +239,16 @@ export function useVeraChat() {
               sourceCount: total,
               searchDone: true,
             }));
+          },
+
+          onSuggestedQuestions(questions) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId
+                  ? { ...m, suggestedQuestions: questions }
+                  : m,
+              ),
+            );
           },
 
           onReferences(refs) {
