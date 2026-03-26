@@ -15,8 +15,15 @@ export function useVimContext() {
     vimOS.ehr.patient.get().then(setPatient).catch(() => {});
     vimOS.ehr.encounter.get().then(setEncounter).catch(() => {});
 
-    vimOS.ehr.patient.subscribe(setPatient);
-    vimOS.ehr.encounter.subscribe(setEncounter);
+    const unsubs: Array<() => void> = [];
+    const pUnsub = vimOS.ehr.patient.subscribe(setPatient);
+    const eUnsub = vimOS.ehr.encounter.subscribe(setEncounter);
+    if (typeof pUnsub === "function") unsubs.push(pUnsub);
+    if (typeof eUnsub === "function") unsubs.push(eUnsub);
+
+    return () => {
+      unsubs.forEach((fn) => fn());
+    };
   }, [vimOS]);
 
   return { patient, encounter };
