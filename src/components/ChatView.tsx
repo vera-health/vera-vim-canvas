@@ -1,19 +1,22 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUp, Square, RotateCcw, Settings, LogOut, MessageSquare, Mic, X, Check } from "lucide-react";
+import { ArrowUp, Square, RotateCcw, Settings, LogOut, MessageSquare, HelpCircle, Mic, X, Check, Maximize2, Minimize2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useVimContext } from "@/hooks/useVimContext";
+import { useVimOS } from "@/app/page";
 import { useVeraChat } from "@/hooks/useVeraChat";
 import { useWhisper } from "@/hooks/useWhisper";
 import { useEhrNotifications } from "@/hooks/useEhrNotifications";
 import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
+import { useExpandState } from "@/hooks/useExpandState";
 import { formatEhrContext } from "@/utils/formatContext";
 import { Message } from "@/components/Message";
 import { ReferenceTooltipDisplay } from "@/components/renderers/ReferenceTooltip";
 import { getSupabase } from "@/utils/supabase";
 import { ALL_NOTIFICATION_TYPES, NOTIFICATION_TYPE_LABELS } from "@/types/notification";
 import { Tooltip } from "@/components/Tooltip";
+import { HelpScreen } from "@/components/HelpScreen";
 
 export function ChatView() {
   const { patient, encounter, problems, medications, allergies, labs, vitals } = useVimContext();
@@ -35,8 +38,11 @@ export function ChatView() {
     activePromptText,
   } = useEhrNotifications();
   const { preferences, toggleType } = useNotificationPreferences();
+  const { expanded, toggle: toggleExpand } = useExpandState();
+  const vimOS = useVimOS();
   const [input, setInput] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -71,6 +77,12 @@ export function ChatView() {
   // Keyboard shortcuts: Ctrl+D to toggle dictation, Esc to cancel, Enter to confirm
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Ctrl+Shift+E: toggle expanded view
+      if (e.ctrlKey && e.shiftKey && e.key === "E") {
+        e.preventDefault();
+        toggleExpand();
+        return;
+      }
       // Ctrl+D: start dictation (when idle and not streaming)
       if (e.ctrlKey && e.key === "d") {
         e.preventDefault();
@@ -103,7 +115,7 @@ export function ChatView() {
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [whisperState, isStreaming, micSupported, input, patient, encounter, problems, medications, allergies, labs, vitals, startRecording, cancelRecording, stopAndTranscribe, sendMessage]);
+  }, [whisperState, isStreaming, micSupported, input, patient, encounter, problems, medications, allergies, labs, vitals, startRecording, cancelRecording, stopAndTranscribe, sendMessage, toggleExpand]);
 
   const handleScroll = useCallback(() => {
     const el = scrollContainerRef.current;
@@ -130,6 +142,13 @@ export function ChatView() {
     }
   }, [settingsOpen]);
 
+  // Sync expanded state with VimOS
+  useEffect(() => {
+    const hub = vimOS?.hub;
+    if (!hub?.setDynamicAppSize) return;
+    hub.setDynamicAppSize(expanded ? "LARGE" : "CLASSIC");
+  }, [expanded, vimOS]);
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const text = input.trim();
@@ -152,6 +171,11 @@ export function ChatView() {
 
   return (
     <div className="flex h-screen flex-col" style={{ backgroundColor: "#FFFFFF" }}>
+      {helpOpen && (
+        <div className="absolute inset-0 z-50">
+          <HelpScreen onBack={() => setHelpOpen(false)} />
+        </div>
+      )}
       <ReferenceTooltipDisplay />
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: "1px solid #EDF2F7" }}>
@@ -195,6 +219,18 @@ export function ChatView() {
                   type="button"
                   onClick={() => {
                     setSettingsOpen(false);
+                    setHelpOpen(true);
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-gray-50"
+                  style={{ color: "#37475E" }}
+                >
+                  <HelpCircle className="h-4 w-4" />
+                  What can Vera do?
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSettingsOpen(false);
                     window.open("mailto:support@verahealth.ai?subject=Vera%20Feedback", "_blank");
                   }}
                   className="flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-gray-50"
@@ -212,6 +248,34 @@ export function ChatView() {
                   <LogOut className="h-4 w-4" />
                   Log Out
                 </button>
+                <div style={{ borderTop: "1px solid #EDF2F7" }} className="px-3 py-2">
+                  <label className="flex cursor-pointer items-center justify-between">
+                    <span
+                      className="flex items-center gap-1.5 text-xs"
+                      style={{ color: "#37475E", fontFamily: "Manrope, system-ui, sans-serif" }}
+                    >
+                      {expanded ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+                      Expanded view
+                    </span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={expanded}
+                      onClick={toggleExpand}
+                      className="relative h-5 w-9 rounded-full transition-colors"
+                      style={{
+                        backgroundColor: expanded ? "#486081" : "#D1D5DB",
+                      }}
+                    >
+                      <span
+                        className="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform"
+                        style={{
+                          transform: expanded ? "translateX(16px)" : "translateX(0)",
+                        }}
+                      />
+                    </button>
+                  </label>
+                </div>
                 <div style={{ borderTop: "1px solid #EDF2F7" }} className="px-3 py-2">
                   <span
                     className="text-xs font-semibold"

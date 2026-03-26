@@ -1,7 +1,8 @@
 import type {VeraTable, VeraNode} from "@/types/customAST";
 
-import React, {useState, useCallback} from "react";
+import React from "react";
 import {useVimOS} from "@/app/page";
+import {useExpandState} from "@/hooks/useExpandState";
 
 interface VeraTableRendererProps {
   node: VeraTable;
@@ -11,15 +12,7 @@ interface VeraTableRendererProps {
 export const VeraTableRenderer: React.FC<VeraTableRendererProps> = ({node, renderChildren}) => {
   const [firstRow, ...bodyRows] = node.children;
   const vimOS = useVimOS();
-  const [expanded, setExpanded] = useState(false);
-
-  const toggleSize = useCallback(() => {
-    const hub = vimOS?.hub;
-    if (!hub?.setDynamicAppSize) return;
-    const next = expanded ? "CLASSIC" : "LARGE";
-    hub.setDynamicAppSize(next);
-    setExpanded(!expanded);
-  }, [vimOS, expanded]);
+  const { expanded, toggle: toggleSize } = useExpandState();
 
   const canResize = !!vimOS?.hub?.setDynamicAppSize;
 
