@@ -45,6 +45,7 @@ export function useVeraChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const threadIdRef = useRef<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const updateThinking = (
     assistantId: string,
@@ -89,6 +90,9 @@ export function useVeraChat() {
           throw new Error("Not authenticated");
         }
 
+        const controller = new AbortController();
+        abortRef.current = controller;
+
         const res = await fetch(`/api/chat`, {
           method: "POST",
           headers: {
@@ -99,6 +103,7 @@ export function useVeraChat() {
             question: fullQuestion,
             threadId: threadIdRef.current || undefined,
           }),
+          signal: controller.signal,
         });
 
         if (!res.ok) {
@@ -207,7 +212,7 @@ export function useVeraChat() {
               searchDone: true,
             }));
           },
-        });
+        }, controller.signal);
 
         // Final parse with complete markdown
         try {
@@ -221,26 +226,49 @@ export function useVeraChat() {
           console.error("[useVeraChat] parseCompleteMarkdown failed:", e);
         }
       } catch (err) {
-        const errorText =
-          err instanceof Error ? err.message : "Unknown error";
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === assistantId
-              ? { ...m, content: `Error: ${errorText}` }
-              : m,
-          ),
-        );
+        // If the user stopped the stream, do a final parse on what we have
+        if (err instanceof DOMException && err.name === "AbortError") {
+          try {
+            if (contentBuffer.current) {
+              const finalMdast = parseCompleteMarkdown(contentBuffer.current);
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantId
+                    ? { ...m, mdast: finalMdast }
+                    : m,
+                ),
+              );
+            }
+          } catch {
+            // parse failed, keep partial content as-is
+          }
+        } else {
+          const errorText =
+            err instanceof Error ? err.message : "Unknown error";
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId
+                ? { ...m, content: `Error: ${errorText}` }
+                : m,
+            ),
+          );
+        }
         updateThinking(assistantId, (t) => ({
           ...t,
           isThinking: false,
           completedAt: Date.now(),
         }));
       } finally {
+        abortRef.current = null;
         setIsStreaming(false);
       }
     },
     [],
   );
 
-  return { messages, isStreaming, sendMessage };
+  const stopStream = useCallback(() => {
+    abortRef.current?.abort();
+  }, []);
+
+  return { messages, isStreaming, sendMessage, stopStream };
 }

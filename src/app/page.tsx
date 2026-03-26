@@ -17,13 +17,15 @@ export default function Page() {
   const [vimOS, setVimOS] = useState<VimOS | null>(null);
 
   useEffect(() => {
-    // Initialize VimOS SDK
+    // Initialize VimOS SDK (non-blocking, runs in parallel with auth)
     async function initVim() {
       const sdk = window.vimSdk;
       if (!sdk?.initializeVimSDK) return;
       try {
         const os = await sdk.initializeVimSDK();
-        os.hub.setActivationStatus("ENABLED");
+        if (os?.hub?.setActivationStatus) {
+          os.hub.setActivationStatus("ENABLED");
+        }
         setVimOS(os);
       } catch (e) {
         console.error("VimOS init failed:", e);
@@ -31,7 +33,7 @@ export default function Page() {
     }
     initVim();
 
-    // Supabase auth
+    // Supabase auth (always required — Vera API needs the token)
     const supabase = getSupabase();
 
     supabase.auth.getSession().then(({ data: { session } }) => {
