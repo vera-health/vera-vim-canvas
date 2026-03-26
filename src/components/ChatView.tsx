@@ -6,6 +6,7 @@ import { useVimContext } from "@/hooks/useVimContext";
 import { useVeraChat } from "@/hooks/useVeraChat";
 import { formatEhrContext } from "@/utils/formatContext";
 import { Message } from "@/components/Message";
+import { ReferenceTooltipDisplay } from "@/components/renderers/ReferenceTooltip";
 import { getSupabase } from "@/utils/supabase";
 
 function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
@@ -102,6 +103,7 @@ export function ChatView() {
 
   return (
     <div className="flex h-screen flex-col" style={{ backgroundColor: "#FFFFFF" }}>
+      <ReferenceTooltipDisplay />
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: "1px solid #EDF2F7" }}>
         <div className="flex items-center gap-2">

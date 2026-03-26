@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import type { VeraRoot } from "@/types/customAST";
 import type { ThinkingState, ThinkingStep } from "@/types/chat";
 import { getSupabase } from "@/utils/supabase";
+import type { ReferenceSchema } from "@/types/references";
 import { consumeVeraStream } from "@/utils/vera-stream";
 import { parseCompleteMarkdown, parsePartialMarkdown } from "@/utils/mdast/parsers";
 
@@ -16,6 +17,8 @@ export type Message = {
   content: string;
   mdast?: VeraRoot;
   thinking?: ThinkingState;
+  references?: ReferenceSchema[];
+  evidenceLevels?: Record<string, any>;
 };
 
 function defaultThinkingState(): ThinkingState {
@@ -168,6 +171,10 @@ export function useVeraChat() {
           onDynamicReasoningStep(step) {
             updateThinking(assistantId, (t) => {
               const newSteps = [...t.steps];
+              // Pad with placeholder steps to avoid sparse array holes
+              for (let i = newSteps.length; i <= step.index; i++) {
+                newSteps[i] = { text: "", status: "pending", reasoning: "" };
+              }
               newSteps[step.index] = {
                 text: step.title || step.text,
                 status: "active",
@@ -231,6 +238,24 @@ export function useVeraChat() {
               sourceCount: total,
               searchDone: true,
             }));
+          },
+
+          onReferences(refs) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId ? { ...m, references: refs } : m,
+              ),
+            );
+          },
+
+          onEvidenceLevels(levels) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId
+                  ? { ...m, evidenceLevels: { ...m.evidenceLevels, ...levels } }
+                  : m,
+              ),
+            );
           },
         }, controller.signal);
 

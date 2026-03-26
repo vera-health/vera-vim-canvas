@@ -53,6 +53,8 @@ export function Message({
         {message.mdast ? (
           <CustomASTRenderer
             ast={message.mdast}
+            references={message.references}
+            evidenceLevels={message.evidenceLevels}
             isStreaming={isStreaming}
           />
         ) : hasContent ? (

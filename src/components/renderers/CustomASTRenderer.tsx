@@ -223,14 +223,15 @@ const CustomASTNode = React.memo<CustomASTNodeProps>(
         const rawHref = addUtmToUrl(citationNode.url);
         const reference = findReferenceByUrl(citationNode.url, references);
 
-        let evidenceStrength: "High" | "Moderate" | "Low" | null = null;
+        let evidenceStrength: "High" | "Moderate" | "Low" | "Very High" | null = null;
+        let evidenceData = null;
         if (evidenceLevels && reference) {
-          const ev =
+          evidenceData =
             (reference.doi && evidenceLevels[reference.doi]) ||
             (reference.pmid && evidenceLevels[reference.pmid]) ||
             null;
-          if (ev?.overall_strength) {
-            evidenceStrength = ev.overall_strength;
+          if (evidenceData?.overall_strength) {
+            evidenceStrength = evidenceData.overall_strength;
           }
         }
 
@@ -238,6 +239,7 @@ const CustomASTNode = React.memo<CustomASTNodeProps>(
           <CitationLink
             citationNumber={citationNode.citationNumber}
             evidenceStrength={evidenceStrength}
+            evidenceData={evidenceData}
             href={rawHref}
             reference={reference}
           />

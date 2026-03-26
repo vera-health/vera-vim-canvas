@@ -1,11 +1,12 @@
 "use client";
 
-import type {EvidenceStrength} from "@/types/evidence";
+import type {EvidenceStrength, EvidenceLevelData} from "@/types/evidence";
 import type {ReferenceSchema} from "@/types/references";
 
 import React from "react";
 
 import {sanitizeUrl} from "@/components/renderers/utils";
+import ReferenceTooltip from "@/components/renderers/ReferenceTooltip";
 
 // Evidence colors matching mobile: vera-mobile tailwind.config.js evidence scale
 const EVIDENCE_STYLES: Record<EvidenceStrength, React.CSSProperties> = {
@@ -25,6 +26,7 @@ interface CitationLinkProps {
   href: string | undefined;
   citationNumber: number;
   evidenceStrength?: EvidenceStrength | null;
+  evidenceData?: EvidenceLevelData | null;
 }
 
 export const CitationLink: React.FC<CitationLinkProps> = ({
@@ -32,6 +34,7 @@ export const CitationLink: React.FC<CitationLinkProps> = ({
   href,
   citationNumber,
   evidenceStrength,
+  evidenceData,
 }) => {
   const colorStyle =
     evidenceStrength && EVIDENCE_STYLES[evidenceStrength]
@@ -56,17 +59,18 @@ export const CitationLink: React.FC<CitationLinkProps> = ({
   };
 
   return (
-    <button
-      className="not-prose inline-flex items-center align-middle ml-0.5"
-      title={reference?.title}
-      onClick={handleClick}
-    >
-      <span
-        className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded px-1 text-[10px] font-semibold leading-none"
-        style={{...colorStyle, fontFamily: "system-ui, sans-serif"}}
+    <ReferenceTooltip reference={reference} evidenceStrength={evidenceStrength} evidenceData={evidenceData}>
+      <button
+        className="not-prose inline-flex items-center align-middle ml-0.5"
+        onClick={handleClick}
       >
-        {citationNumber}
-      </span>
-    </button>
+        <span
+          className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded px-1 text-[10px] font-semibold leading-none"
+          style={{...colorStyle, fontFamily: "system-ui, sans-serif"}}
+        >
+          {citationNumber}
+        </span>
+      </button>
+    </ReferenceTooltip>
   );
 };

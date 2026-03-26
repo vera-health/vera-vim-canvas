@@ -25,6 +25,8 @@ export type StreamCallbacks = {
   ) => void;
   onSearchProgress?: (data: { category: string; total: number }) => void;
   onSearchProgressSummary?: (data: { total: number }) => void;
+  onReferences?: (refs: any[]) => void;
+  onEvidenceLevels?: (levels: Record<string, any>) => void;
 };
 
 export async function consumeVeraStream(
@@ -115,6 +117,14 @@ export async function consumeVeraStream(
 
             case "data-search-progress-summary":
               callbacks.onSearchProgressSummary?.(event.data);
+              break;
+
+            case "data-references":
+              callbacks.onReferences?.(event.references ?? event.data);
+              break;
+
+            case "data-evidence-levels":
+              callbacks.onEvidenceLevels?.(event.evidenceLevels ?? event.data);
               break;
           }
         } catch {
