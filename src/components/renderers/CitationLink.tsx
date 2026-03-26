@@ -10,7 +10,7 @@ import ReferenceTooltip from "@/components/renderers/ReferenceTooltip";
 
 // Evidence colors matching mobile: vera-mobile tailwind.config.js evidence scale
 const EVIDENCE_STYLES: Record<EvidenceStrength, React.CSSProperties> = {
-  "Very High": { backgroundColor: "rgb(13 148 136 / 0.12)", color: "#0f766e" },
+  "Very High": { backgroundColor: "rgb(6 95 70 / 0.25)", color: "#065f46" },
   High: { backgroundColor: "rgb(5 150 105 / 0.12)", color: "#047857" },
   Moderate: { backgroundColor: "rgb(217 119 6 / 0.12)", color: "#b45309" },
   Low: { backgroundColor: "rgb(234 88 12 / 0.12)", color: "#c2410c" },

@@ -10,67 +10,11 @@ import { formatEhrContext } from "@/utils/formatContext";
 import { Message } from "@/components/Message";
 import { ReferenceTooltipDisplay } from "@/components/renderers/ReferenceTooltip";
 import { getSupabase } from "@/utils/supabase";
-
-function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const tipRef = useRef<HTMLSpanElement>(null);
-  const [style, setStyle] = useState<React.CSSProperties>({});
-
-  const recalc = useCallback(() => {
-    const wrapper = wrapperRef.current;
-    const tip = tipRef.current;
-    if (!wrapper || !tip) return;
-
-    const anchor = wrapper.getBoundingClientRect();
-    const tipRect = tip.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-
-    // Vertical: prefer above, fall back to below
-    const above = anchor.top - tipRect.height - 6 >= 0;
-    const vertical: React.CSSProperties = above
-      ? { bottom: "calc(100% + 6px)" }
-      : { top: "calc(100% + 6px)" };
-
-    // Horizontal: center, then nudge if clipping
-    const centerX = anchor.left + anchor.width / 2 - tipRect.width / 2;
-    let horizontal: React.CSSProperties;
-    if (centerX < 4) {
-      horizontal = { left: 0 };
-    } else if (centerX + tipRect.width > vw - 4) {
-      horizontal = { right: 0 };
-    } else {
-      horizontal = { left: "50%", transform: "translateX(-50%)" };
-    }
-
-    setStyle({ ...vertical, ...horizontal });
-  }, []);
-
-  return (
-    <div
-      ref={wrapperRef}
-      className="group relative inline-flex"
-      onMouseEnter={recalc}
-    >
-      {children}
-      <span
-        ref={tipRef}
-        className="pointer-events-none absolute z-50 whitespace-nowrap rounded-md px-2 py-1 text-xs font-medium opacity-0 transition-opacity group-hover:opacity-100"
-        style={{
-          backgroundColor: "#1a1a1a",
-          color: "#fff",
-          ...style,
-        }}
-      >
-        {label}
-      </span>
-    </div>
-  );
-}
+import { Tooltip } from "@/components/Tooltip";
 
 export function ChatView() {
   const { patient, encounter, problems, medications, allergies, labs, vitals } = useVimContext();
-  const { messages, isStreaming, sendMessage, stopStream, resetChat } = useVeraChat();
+  const { messages, isStreaming, sendMessage, stopStream, resetChat, regenerateMessage } = useVeraChat();
   const {
     state: whisperState,
     error: whisperError,
@@ -308,6 +252,7 @@ export function ChatView() {
               i === messages.length - 1
             }
             onQuestionClick={(q) => handleSampleClick(q)}
+            onRegenerate={msg.role === "assistant" ? regenerateMessage : undefined}
           />
         ))}
         <div ref={messagesEndRef} />
