@@ -1,11 +1,13 @@
 "use client";
 
+const isDev = process.env.NODE_ENV === "development";
+
 export default function ErrorPage({
   error,
-  reset,
+  unstable_retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  unstable_retry: () => void;
 }) {
   // Log full error details to console for debugging in webview
   console.error("[Vera] ErrorBoundary caught:", error.message, error.stack);
@@ -17,16 +19,18 @@ export default function ErrorPage({
         Something went wrong
       </p>
       <p className="text-xs" style={{ color: "#687076" }}>
-        {error.message || "An unexpected error occurred"}
+        {isDev ? error.message : "An unexpected error occurred"}
       </p>
-      <pre
-        className="mt-2 max-h-40 w-full overflow-auto rounded bg-gray-100 p-2 text-left text-[10px]"
-        style={{ color: "#687076" }}
-      >
-        {error.stack}
-      </pre>
+      {isDev && (
+        <pre
+          className="mt-2 max-h-40 w-full overflow-auto rounded bg-gray-100 p-2 text-left text-[10px]"
+          style={{ color: "#687076" }}
+        >
+          {error.stack}
+        </pre>
+      )}
       <button
-        onClick={reset}
+        onClick={unstable_retry}
         className="rounded-xl border px-4 py-2 text-sm transition-colors hover:bg-gray-50"
         style={{ borderColor: "#EDF1F5", color: "#37475E" }}
       >
