@@ -42,68 +42,110 @@ export function LoginView() {
     if (error) {
       setError(error.message);
     }
-    // On success, onAuthStateChange in page.tsx picks up the session
   }
 
   return (
-    <div className="flex h-screen items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-sm border border-gray-200">
-        <div className="mb-6 flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full bg-indigo-600" />
-          <span className="text-sm font-semibold">Vera</span>
-        </div>
+    <div
+      className="flex h-screen flex-col items-center justify-between px-4 py-12"
+      style={{
+        background: "linear-gradient(to bottom, #222831, #0B131F)",
+        fontFamily: "Manrope, system-ui, sans-serif",
+      }}
+    >
+      {/* Upper section: logo + tagline */}
+      <div className="flex flex-1 flex-col items-center justify-center gap-8">
+        <img
+          src="/vera-logo.png"
+          alt="Vera"
+          className="w-48"
+          draggable={false}
+        />
+        <p className="max-w-xs text-center text-2xl leading-snug text-white">
+          Practice with confidence
+        </p>
+      </div>
 
+      {/* Lower section: glass card */}
+      <div
+        className="w-full max-w-sm rounded-[32px] border border-white/10 p-8"
+        style={{
+          background: "rgba(255, 255, 255, 0.06)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+        }}
+      >
         {step === "email" ? (
           <form onSubmit={handleSendOtp}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
+            <h2 className="mb-6 text-xl font-bold text-[#EDF1F5]">
+              Sign in with email
+            </h2>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-              disabled={loading}
               autoFocus
+              disabled={loading}
+              className="w-full rounded-xl border border-white/5 bg-white/5 p-4 text-[#EDF1F5] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#EDF1F5]"
             />
             {error && (
-              <p className="mt-2 text-xs text-red-600">{error}</p>
+              <p className="mt-2 text-sm text-[#d63152]">{error}</p>
             )}
             <button
               type="submit"
               disabled={loading || !email.trim()}
-              className="mt-4 w-full rounded-lg bg-indigo-600 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
+              className="mt-4 w-full rounded-xl bg-[#EDF1F5] p-4 font-semibold text-[#151718] transition-opacity hover:opacity-90 active:opacity-80 disabled:bg-[#C0C9D5] disabled:text-[#8090A6]"
             >
-              {loading ? "Sending..." : "Send code"}
+              {loading ? "Sending..." : "Continue with Email"}
             </button>
+            <p className="mt-6 text-center text-xs text-[#8090A6]">
+              By signing in, you agree to our{" "}
+              <a
+                href="https://www.verahealth.ai/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold underline"
+              >
+                Terms of Service
+              </a>{" "}
+              and{" "}
+              <a
+                href="https://www.verahealth.ai/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold underline"
+              >
+                Privacy Policy
+              </a>
+            </p>
           </form>
         ) : (
           <form onSubmit={handleVerifyOtp}>
-            <p className="mb-3 text-sm text-gray-600">
-              We sent a code to <strong>{email}</strong>
+            <h2 className="mb-2 text-xl font-bold text-[#EDF1F5]">
+              Enter your code
+            </h2>
+            <p className="mb-6 text-sm text-[#8090A6]">
+              We sent a verification code to{" "}
+              <strong className="text-[#EDF1F5]">{email}</strong>
             </p>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Verification code
-            </label>
             <input
               type="text"
               value={otpCode}
               onChange={(e) => setOtpCode(e.target.value)}
               placeholder="123456"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-              disabled={loading}
               autoFocus
+              disabled={loading}
               inputMode="numeric"
               maxLength={6}
+              className="w-full rounded-xl border border-white/5 bg-white/5 p-4 text-center text-2xl tracking-[0.3em] text-[#EDF1F5] placeholder-[#9CA3AF] outline-none transition-colors focus:border-[#EDF1F5]"
             />
             {error && (
-              <p className="mt-2 text-xs text-red-600">{error}</p>
+              <p className="mt-2 text-sm text-[#d63152]">{error}</p>
             )}
             <button
               type="submit"
               disabled={loading || !otpCode.trim()}
-              className="mt-4 w-full rounded-lg bg-indigo-600 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
+              className="mt-4 w-full rounded-xl bg-[#EDF1F5] p-4 font-semibold text-[#151718] transition-opacity hover:opacity-90 active:opacity-80 disabled:bg-[#C0C9D5] disabled:text-[#8090A6]"
             >
               {loading ? "Verifying..." : "Verify"}
             </button>
@@ -114,7 +156,7 @@ export function LoginView() {
                 setOtpCode("");
                 setError(null);
               }}
-              className="mt-2 w-full text-sm text-gray-500 hover:text-gray-700"
+              className="mt-3 w-full rounded-xl border border-[#C0C9D5]/20 bg-transparent p-4 font-semibold text-[#EDF1F5] transition-opacity hover:opacity-80"
             >
               Back
             </button>

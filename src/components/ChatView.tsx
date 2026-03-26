@@ -1,20 +1,32 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUp, Square } from "lucide-react";
 import { useVimContext } from "@/hooks/useVimContext";
 import { useVeraChat } from "@/hooks/useVeraChat";
 import { formatEhrContext } from "@/utils/formatContext";
 import { Message } from "@/components/Message";
+import { ReferenceTooltipDisplay } from "@/components/renderers/ReferenceTooltip";
 
 export function ChatView() {
   const { patient, encounter } = useVimContext();
   const { messages, isStreaming, sendMessage, stopStream } = useVeraChat();
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const userScrolledUp = useRef(false);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    userScrolledUp.current = !atBottom;
+  }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!userScrolledUp.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
   function handleSubmit(e: FormEvent) {
@@ -29,8 +41,20 @@ export function ChatView() {
     .filter(Boolean)
     .join(" ");
 
+  const sampleQuestions = [
+    "Summarize this patient's active problems",
+    "Write patient instructions for this visit",
+    "What are the latest guidelines on Type 2 Diabetes management?",
+  ];
+
+  function handleSampleClick(question: string) {
+    if (isStreaming) return;
+    sendMessage(question, formatEhrContext(patient, encounter));
+  }
+
   return (
     <div className="flex h-screen flex-col" style={{ backgroundColor: "#FFFFFF" }}>
+      <ReferenceTooltipDisplay />
       {/* Header */}
       <div className="px-4 py-3" style={{ borderBottom: "1px solid #EDF2F7" }}>
         <div className="flex items-center gap-2">
@@ -47,13 +71,33 @@ export function ChatView() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
+      >
         {messages.length === 0 && (
-          <div
-            className="flex h-full items-center justify-center text-sm"
-            style={{ color: "#8090A6" }}
-          >
-            Ask Vera anything about your patient
+          <div className="flex h-full flex-col items-center justify-center gap-4">
+            <span className="text-sm" style={{ color: "#8090A6" }}>
+              Ask Vera anything about your patient
+            </span>
+            <div className="flex flex-col gap-2 w-full max-w-xs">
+              {sampleQuestions.map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => handleSampleClick(q)}
+                  className="rounded-xl border px-4 py-2.5 text-left text-sm transition-colors hover:bg-gray-50"
+                  style={{
+                    borderColor: "#EDF1F5",
+                    color: "#37475E",
+                    fontFamily: "Manrope, system-ui, sans-serif",
+                  }}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
           </div>
         )}
         {messages.map((msg, i) => (
@@ -70,7 +114,7 @@ export function ChatView() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input bar — matches mobile SafeGlassView style */}
+      {/* Input bar */}
       <div className="px-4 py-3" style={{ borderTop: "1px solid #EDF2F7" }}>
         <form onSubmit={handleSubmit}>
           <div

@@ -1,7 +1,37 @@
+export type StreamCallbacks = {
+  onDelta: (text: string) => void;
+  onFinish: (threadId: string) => void;
+  onSearchSteps?: (
+    steps: Array<{
+      text: string;
+      isActive?: boolean;
+      isCompleted?: boolean;
+      isDynamicReasoning?: boolean;
+      isReasoningStep?: boolean;
+      info?: string;
+      reasoning?: string;
+    }>,
+  ) => void;
+  onDynamicReasoningStep?: (step: {
+    title: string;
+    text: string;
+    reasoning: string;
+    index: number;
+  }) => void;
+  onReasoningDelta?: (data: { stepIndex: number; delta: string }) => void;
+  onReasoningStepComplete?: (data: { stepIndex: number }) => void;
+  onSearchReasoning?: (
+    data: string | { content: string } | { reset: true },
+  ) => void;
+  onSearchProgress?: (data: { category: string; total: number }) => void;
+  onSearchProgressSummary?: (data: { total: number }) => void;
+  onReferences?: (refs: any[]) => void;
+  onEvidenceLevels?: (levels: Record<string, any>) => void;
+};
+
 export async function consumeVeraStream(
   response: Response,
-  onDelta: (text: string) => void,
-  onFinish: (threadId: string) => void,
+  callbacks: StreamCallbacks,
   signal?: AbortSignal,
 ): Promise<void> {
   const reader = response.body!.getReader();
@@ -41,15 +71,61 @@ export async function consumeVeraStream(
             case "thread-info":
               threadId = event.threadId;
               break;
+
             case "text-delta":
-              onDelta(event.delta);
+              callbacks.onDelta(event.delta);
               break;
+
             case "finish":
-              onFinish(threadId);
+              callbacks.onFinish(threadId);
               return;
+
             case "data-stop":
-              onDelta(`\n\nError: ${event.error || "Stream stopped"}`);
+              callbacks.onDelta(
+                `\n\nError: ${event.data?.message || event.error || "Stream stopped"}`,
+              );
               return;
+
+            case "data-search-steps":
+              callbacks.onSearchSteps?.(event.data);
+              break;
+
+            case "data-dynamic-reasoning-step":
+              callbacks.onDynamicReasoningStep?.(event.data);
+              break;
+
+            case "data-reasoning-for-step":
+              callbacks.onReasoningDelta?.({
+                stepIndex: event.data.stepIndex,
+                delta: event.data.delta,
+              });
+              break;
+
+            case "data-reasoning-for-step-complete":
+              callbacks.onReasoningStepComplete?.({
+                stepIndex: event.data.stepIndex,
+              });
+              break;
+
+            case "data-search-reasoning":
+              callbacks.onSearchReasoning?.(event.data);
+              break;
+
+            case "data-search-progress":
+              callbacks.onSearchProgress?.(event.data);
+              break;
+
+            case "data-search-progress-summary":
+              callbacks.onSearchProgressSummary?.(event.data);
+              break;
+
+            case "data-references":
+              callbacks.onReferences?.(event.references ?? event.data);
+              break;
+
+            case "data-evidence-levels":
+              callbacks.onEvidenceLevels?.(event.evidenceLevels ?? event.data);
+              break;
           }
         } catch {
           // Malformed JSON line, skip
