@@ -8,6 +8,9 @@ import type { ReferenceSchema } from "@/types/references";
 import { consumeVeraStream } from "@/utils/vera-stream";
 import { parseCompleteMarkdown, parsePartialMarkdown } from "@/utils/mdast/parsers";
 
+/** Minimum ms between partial markdown parses during streaming. */
+const PARSE_THROTTLE_MS = 80;
+
 export type Message = {
   id: string;
   role: "user" | "assistant";
@@ -83,6 +86,8 @@ export function useVeraChat() {
 
       const fullQuestion = (ehrContext || "") + question;
       const contentBuffer = { current: "" };
+      let lastParseTime = 0;
+      let pendingParseTimer: ReturnType<typeof setTimeout> | null = null;
 
       try {
         const {
@@ -118,18 +123,33 @@ export function useVeraChat() {
             contentBuffer.current += delta;
             const content = contentBuffer.current;
 
-            let mdast: VeraRoot | undefined;
-            try {
-              mdast = parsePartialMarkdown(content);
-            } catch (e) {
-              console.error("[useVeraChat] parsePartialMarkdown failed:", e);
-            }
+            const doParse = () => {
+              pendingParseTimer = null;
+              lastParseTime = Date.now();
+              const snapshot = contentBuffer.current;
+              let mdast: VeraRoot | undefined;
+              try {
+                mdast = parsePartialMarkdown(snapshot);
+              } catch (e) {
+                console.error("[useVeraChat] parsePartialMarkdown failed:", e);
+              }
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantId ? { ...m, content: snapshot, mdast } : m,
+                ),
+              );
+            };
 
-            setMessages((prev) =>
-              prev.map((m) =>
-                m.id === assistantId ? { ...m, content, mdast } : m,
-              ),
-            );
+            const elapsed = Date.now() - lastParseTime;
+            if (elapsed >= PARSE_THROTTLE_MS) {
+              if (pendingParseTimer) {
+                clearTimeout(pendingParseTimer);
+                pendingParseTimer = null;
+              }
+              doParse();
+            } else if (!pendingParseTimer) {
+              pendingParseTimer = setTimeout(doParse, PARSE_THROTTLE_MS - elapsed);
+            }
           },
 
           onFinish(tid) {
@@ -284,6 +304,7 @@ export function useVeraChat() {
           completedAt: Date.now(),
         }));
       } finally {
+        if (pendingParseTimer) clearTimeout(pendingParseTimer);
         abortRef.current = null;
         setIsStreaming(false);
       }
@@ -295,5 +316,13 @@ export function useVeraChat() {
     abortRef.current?.abort();
   }, []);
 
-  return { messages, isStreaming, sendMessage, stopStream };
+  const resetChat = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setMessages([]);
+    setIsStreaming(false);
+    threadIdRef.current = null;
+  }, []);
+
+  return { messages, isStreaming, sendMessage, stopStream, resetChat };
 }

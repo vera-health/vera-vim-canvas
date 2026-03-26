@@ -1,0 +1,28 @@
+"use client";
+
+export default function ErrorPage({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  return (
+    <div className="flex h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: "#1b779b" }} />
+      <p className="text-sm font-medium" style={{ color: "#37475E" }}>
+        Something went wrong
+      </p>
+      <p className="text-xs" style={{ color: "#687076" }}>
+        {error.message || "An unexpected error occurred"}
+      </p>
+      <button
+        onClick={reset}
+        className="rounded-xl border px-4 py-2 text-sm transition-colors hover:bg-gray-50"
+        style={{ borderColor: "#EDF1F5", color: "#37475E" }}
+      >
+        Try again
+      </button>
+    </div>
+  );
+}
