@@ -6,7 +6,7 @@ interface GuidelineContentSectionProps {
 
 export const GuidelineContentSection: React.FC<GuidelineContentSectionProps> = ({children}) => {
   return (
-    <div className="prose max-w-none text-[13px] leading-[22px] prose-ol:list-decimal prose-ul:list-disc prose-li:marker:text-gray-400" style={{color: "var(--vera-grey-600)"}}>
+    <div className="prose max-w-none prose-ol:list-decimal prose-ul:list-disc prose-li:marker:text-gray-400">
       {children}
     </div>
   );
