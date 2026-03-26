@@ -8,7 +8,7 @@ import React, {useState, useRef, useEffect} from "react";
 // --- Evidence Chip ---
 
 const EVIDENCE_CHIP_STYLES: Record<EvidenceStrength, React.CSSProperties> = {
-  "Very High": {backgroundColor: "rgb(13 148 136 / 0.12)", color: "#0f766e"},
+  "Very High": {backgroundColor: "rgb(6 95 70 / 0.25)", color: "#065f46"},
   High: {backgroundColor: "rgb(5 150 105 / 0.12)", color: "#047857"},
   Moderate: {backgroundColor: "rgb(217 119 6 / 0.12)", color: "#b45309"},
   Low: {backgroundColor: "rgb(234 88 12 / 0.12)", color: "#c2410c"},
@@ -16,8 +16,8 @@ const EVIDENCE_CHIP_STYLES: Record<EvidenceStrength, React.CSSProperties> = {
 
 const EvidenceChip: React.FC<{strength: EvidenceStrength}> = ({strength}) => (
   <span
-    className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold"
-    style={EVIDENCE_CHIP_STYLES[strength]}
+    className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px]"
+    style={{...EVIDENCE_CHIP_STYLES[strength], fontFamily: "Manrope, system-ui, sans-serif"}}
   >
     {strength}
   </span>
@@ -25,16 +25,15 @@ const EvidenceChip: React.FC<{strength: EvidenceStrength}> = ({strength}) => (
 
 // --- Neutral Chip ---
 
-const NeutralChip: React.FC<{children: React.ReactNode; emphasis?: boolean}> = ({
+const NeutralChip: React.FC<{children: React.ReactNode}> = ({
   children,
-  emphasis,
 }) => (
   <span
-    className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs"
+    className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px]"
     style={{
       backgroundColor: "rgb(72 96 129 / 0.08)",
       color: "#486081",
-      fontWeight: emphasis ? 600 : 400,
+      fontFamily: "Manrope, system-ui, sans-serif",
     }}
   >
     {children}
@@ -101,7 +100,7 @@ const TooltipReferenceCard: React.FC<{
         <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
           {evidenceStrength && <EvidenceChip strength={evidenceStrength} />}
           {evidenceData?.study_characteristics?.design && (
-            <NeutralChip emphasis>
+            <NeutralChip>
               <span className="capitalize">{evidenceData.study_characteristics.design}</span>
             </NeutralChip>
           )}
@@ -109,17 +108,17 @@ const TooltipReferenceCard: React.FC<{
             <>
               {evidenceData.study_characteristics.oxford_level && (
                 <NeutralChip>
-                  Oxford: <span className="font-semibold">{evidenceData.study_characteristics.oxford_level}</span>
+                  Oxford: <span>{evidenceData.study_characteristics.oxford_level}</span>
                 </NeutralChip>
               )}
               {evidenceData.study_characteristics.sample_size != null && (
                 <NeutralChip>
-                  N = <span className="font-semibold">{evidenceData.study_characteristics.sample_size.toLocaleString()}</span>
+                  N = <span>{evidenceData.study_characteristics.sample_size.toLocaleString()}</span>
                 </NeutralChip>
               )}
               {evidenceData.study_characteristics.follow_up_duration && (
                 <NeutralChip>
-                  Follow-up: <span className="font-semibold">{evidenceData.study_characteristics.follow_up_duration}</span>
+                  Follow-up: <span>{evidenceData.study_characteristics.follow_up_duration}</span>
                 </NeutralChip>
               )}
             </>
