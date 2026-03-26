@@ -381,6 +381,20 @@ export interface VimEhr {
       resource: UpdatableResource,
       cb: (updatableFields: any) => void,
     ): () => void;
+    unsubscribe?(
+      resource: UpdatableResource,
+      cb: (updatableFields: any) => void,
+    ): void;
+
+    // Write methods (rate-limited: 10 req/min/user session)
+    updateEncounter?(payload: EncounterUpdatePayload): Promise<void>;
+    updateReferral?(payload: ReferralUpdatePayload): Promise<void>;
+    updateOrder?(payload: OrderUpdatePayload): Promise<void>;
+
+    // Writability checks
+    canUpdateEncounter?(params: CanUpdateEncounterParams): CanUpdateResult<CanUpdateEncounterParams>;
+    canUpdateReferral?(params: CanUpdateReferralParams): CanUpdateResult<CanUpdateReferralParams>;
+    canUpdateOrder?(params: CanUpdateOrderParams): CanUpdateResult<CanUpdateOrderParams>;
   };
   workflowEvents?: VimWorkflowEvents;
 }
@@ -413,17 +427,6 @@ export interface VimOS {
   ehr: VimEhr;
   hub: VimHub;
   sessionContext?: Record<string, unknown>;
-
-  // Write methods (rate-limited: 10 req/min/user session)
-  updateEncounter?(payload: EncounterUpdatePayload): Promise<void>;
-  updateReferral?(payload: ReferralUpdatePayload): Promise<void>;
-  updateOrder?(payload: OrderUpdatePayload): Promise<void>;
-
-  // Writability checks
-  canUpdateEncounter?(params: CanUpdateEncounterParams): CanUpdateResult<CanUpdateEncounterParams>;
-  canUpdateReferral?(params: CanUpdateReferralParams): CanUpdateResult<CanUpdateReferralParams>;
-  canUpdateOrder?(params: CanUpdateOrderParams): CanUpdateResult<CanUpdateOrderParams>;
-
 }
 
 export interface VimSdk {
