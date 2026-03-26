@@ -12,14 +12,25 @@ export function useVimContext() {
   useEffect(() => {
     if (!vimOS?.ehr) return;
 
-    vimOS.ehr.patient.get().then(setPatient).catch(() => {});
-    vimOS.ehr.encounter.get().then(setEncounter).catch(() => {});
+    console.log("[Vera] VimOS ehr keys:", Object.keys(vimOS.ehr));
 
     const unsubs: Array<() => void> = [];
-    const pUnsub = vimOS.ehr.patient.subscribe(setPatient);
-    const eUnsub = vimOS.ehr.encounter.subscribe(setEncounter);
-    if (typeof pUnsub === "function") unsubs.push(pUnsub);
-    if (typeof eUnsub === "function") unsubs.push(eUnsub);
+
+    if (vimOS.ehr.patient) {
+      vimOS.ehr.patient.get().then(setPatient).catch(() => {});
+      const pUnsub = vimOS.ehr.patient.subscribe(setPatient);
+      if (typeof pUnsub === "function") unsubs.push(pUnsub);
+    } else {
+      console.warn("[Vera] vimOS.ehr.patient is undefined — skipping");
+    }
+
+    if (vimOS.ehr.encounter) {
+      vimOS.ehr.encounter.get().then(setEncounter).catch(() => {});
+      const eUnsub = vimOS.ehr.encounter.subscribe(setEncounter);
+      if (typeof eUnsub === "function") unsubs.push(eUnsub);
+    } else {
+      console.warn("[Vera] vimOS.ehr.encounter is undefined — skipping");
+    }
 
     return () => {
       unsubs.forEach((fn) => fn());
