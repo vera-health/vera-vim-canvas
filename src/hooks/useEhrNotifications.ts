@@ -15,7 +15,15 @@ function orderQuestions(order: VimOrder): string[] {
   const name = order.basicInformation?.orderName ?? "this order";
   const type = order.basicInformation?.type;
 
-  const q1 = `Any contraindications for ${name} given her meds?`;
+  if (name.toLowerCase().includes("ekg")) {
+    return [
+      "What's this patient's cardiac history?",
+      "Are they rate-controlled on their current meds?",
+      "Any prior EKG results to compare?",
+    ];
+  }
+
+  const q1 = `Any contraindications for ${name} given their meds?`;
   const q2 =
     type === "RX"
       ? `Check drug interactions for ${name} with current medications`
@@ -31,9 +39,9 @@ function orderQuestions(order: VimOrder): string[] {
 
 function labQuestions(_results: VimLabResult[]): string[] {
   return [
-    "Interpret these results in context of her problem list",
+    "Interpret these results in context of their problem list",
     "Any critical values?",
-    "How does this compare to her last result?",
+    "How does this compare to their last result?",
   ];
 }
 
