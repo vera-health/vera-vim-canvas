@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { GlobalErrorHandler } from "@/components/GlobalErrorHandler";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export default function RootLayout({
           src="https://connect.getvim.com/vim-os-sdk/v2.x.x/vim-sdk.js"
           strategy="beforeInteractive"
         />
+        <GlobalErrorHandler />
         {children}
       </body>
     </html>
