@@ -7,6 +7,9 @@ import type {
   VimEhrEncounter,
   VimDiagnosis,
   VimMedication,
+  VimAllergy,
+  VimLabResult,
+  VimVital,
 } from "@/types/vim";
 
 export interface VimContextValue {
@@ -14,6 +17,9 @@ export interface VimContextValue {
   encounter: VimEhrEncounter | null;
   problems: VimDiagnosis[];
   medications: VimMedication[];
+  allergies: VimAllergy[];
+  labs: VimLabResult[];
+  vitals: VimVital[];
 }
 
 export function useVimContext(): VimContextValue {
@@ -22,11 +28,17 @@ export function useVimContext(): VimContextValue {
   const [encounter, setEncounter] = useState<VimEhrEncounter | null>(null);
   const [problems, setProblems] = useState<VimDiagnosis[]>([]);
   const [medications, setMedications] = useState<VimMedication[]>([]);
+  const [allergies, setAllergies] = useState<VimAllergy[]>([]);
+  const [labs, setLabs] = useState<VimLabResult[]>([]);
+  const [vitals, setVitals] = useState<VimVital[]>([]);
 
   const loadLists = useCallback(async (p: VimEhrPatient | null) => {
     if (!p) {
       setProblems([]);
       setMedications([]);
+      setAllergies([]);
+      setLabs([]);
+      setVitals([]);
       return;
     }
     // Each call wrapped individually — one failure shouldn't block the other
@@ -45,6 +57,30 @@ export function useVimContext(): VimContextValue {
       }
     } catch {
       setMedications([]);
+    }
+    try {
+      if (typeof p.getAllergyList === "function") {
+        const list = await p.getAllergyList();
+        setAllergies(Array.isArray(list) ? list : []);
+      }
+    } catch {
+      setAllergies([]);
+    }
+    try {
+      if (typeof p.getLabResults === "function") {
+        const res = await p.getLabResults({ page: 1 });
+        setLabs(Array.isArray(res?.data) ? res.data : []);
+      }
+    } catch {
+      setLabs([]);
+    }
+    try {
+      if (typeof p.getVitals === "function") {
+        const res = await p.getVitals({ page: 1 });
+        setVitals(Array.isArray(res?.data) ? res.data : []);
+      }
+    } catch {
+      setVitals([]);
     }
   }, []);
 
@@ -106,5 +142,5 @@ export function useVimContext(): VimContextValue {
     };
   }, [vimOS, loadLists]);
 
-  return { patient, encounter, problems, medications };
+  return { patient, encounter, problems, medications, allergies, labs, vitals };
 }

@@ -3,6 +3,9 @@ import type {
   VimEhrEncounter,
   VimDiagnosis,
   VimMedication,
+  VimAllergy,
+  VimLabResult,
+  VimVital,
 } from "@/types/vim";
 
 export function formatEhrContext(
@@ -10,6 +13,9 @@ export function formatEhrContext(
   encounter: VimEhrEncounter | null,
   problems?: VimDiagnosis[],
   medications?: VimMedication[],
+  allergies?: VimAllergy[],
+  labs?: VimLabResult[],
+  vitals?: VimVital[],
 ): string {
   const parts: string[] = [];
 
@@ -58,6 +64,46 @@ export function formatEhrContext(
       .filter(Boolean)
       .join(", ");
     if (formatted) parts.push(`[Medications: ${formatted}]`);
+  }
+
+  if (allergies?.length) {
+    const formatted = allergies
+      .map((a) => {
+        const name = a.allergyDetails?.name;
+        if (!name) return null;
+        const items = [name];
+        if (a.allergyDetails?.criticality) items.push(`${a.allergyDetails.criticality} criticality`);
+        if (a.allergyReactionDetails?.name) items.push(a.allergyReactionDetails.name);
+        if (a.allergyReactionDetails?.severity) items.push(a.allergyReactionDetails.severity);
+        return items.join(", ");
+      })
+      .filter(Boolean)
+      .join("; ");
+    if (formatted) parts.push(`[Allergies: ${formatted}]`);
+  }
+
+  if (labs?.length) {
+    const formatted = labs
+      .map((l) => {
+        const items = [l.testName];
+        if (l.value) items.push(l.unit ? `${l.value} ${l.unit}` : l.value);
+        if (l.collectionDate) items.push(`(${l.collectionDate})`);
+        return items.filter(Boolean).join(" ");
+      })
+      .filter((s) => s.length > 0)
+      .join(", ");
+    if (formatted) parts.push(`[Recent Labs: ${formatted}]`);
+  }
+
+  if (vitals?.length) {
+    const formatted = vitals
+      .map((v) => {
+        if (!v.type || !v.value) return null;
+        return v.unit ? `${v.type} ${v.value} ${v.unit}` : `${v.type} ${v.value}`;
+      })
+      .filter(Boolean)
+      .join(", ");
+    if (formatted) parts.push(`[Vitals: ${formatted}]`);
   }
 
   return parts.length ? parts.join("\n") + "\n\n" : "";
