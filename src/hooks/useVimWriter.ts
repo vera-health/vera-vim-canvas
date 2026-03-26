@@ -12,6 +12,52 @@ export type EhrSection = keyof CanUpdateEncounterParams;
 
 const RATE_LIMIT = 10;
 const RATE_WINDOW_MS = 60_000;
+const MAX_TEXT_LENGTH = 60_000;
+
+/** Unicode → ASCII replacements for EHR-safe text */
+const CHAR_MAP: Record<string, string> = {
+  "\u2018": "'", "\u2019": "'", "\u201C": '"', "\u201D": '"', // smart quotes
+  "\u2013": "-", "\u2014": "-",                                // en/em dash
+  "\u2026": "...",                                             // ellipsis
+  "\u2022": "-", "\u2023": "-", "\u25E6": "-", "\u25AA": "-", // bullets
+  "\u00A0": " ",                                               // non-breaking space
+  "\u200B": "",  "\u200C": "",  "\u200D": "",  "\uFEFF": "",  // zero-width chars
+  "\u00B0": " degrees ",                                       // degree symbol
+  "\u00BD": "1/2", "\u00BC": "1/4", "\u00BE": "3/4",         // fractions
+  "\u00B1": "+/-",                                             // plus-minus
+  "\u2265": ">=", "\u2264": "<=", "\u2260": "!=",             // math comparisons
+  "\u03B1": "alpha", "\u03B2": "beta", "\u03BC": "mu",       // common Greek letters
+};
+
+const CHAR_REGEX = new RegExp(Object.keys(CHAR_MAP).join("|"), "g");
+
+/** Recursively sanitize all string values in an encounter payload */
+function sanitizePayload(payload: EncounterUpdatePayload): EncounterUpdatePayload {
+  const result: Record<string, unknown> = {};
+  for (const [section, fields] of Object.entries(payload)) {
+    if (fields && typeof fields === "object") {
+      const sanitizedFields: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(fields as Record<string, unknown>)) {
+        sanitizedFields[key] = typeof value === "string" ? sanitizeForEhr(value) : value;
+      }
+      result[section] = sanitizedFields;
+    } else {
+      result[section] = fields;
+    }
+  }
+  return result as EncounterUpdatePayload;
+}
+
+function sanitizeForEhr(text: string): string {
+  let s = text.replace(CHAR_REGEX, (ch) => CHAR_MAP[ch]);
+  // Strip any remaining non-ASCII (keep printable ASCII + newlines/tabs)
+  s = s.replace(/[^\x20-\x7E\n\r\t]/g, "");
+  // Collapse runs of blank lines into a single blank line
+  s = s.replace(/\n{3,}/g, "\n\n");
+  // Trim trailing whitespace per line
+  s = s.replace(/[ \t]+$/gm, "");
+  return s.trim().slice(0, MAX_TEXT_LENGTH);
+}
 
 // Module-level timestamps shared across all useVimWriter instances
 const sharedWriteTimestamps: number[] = [];
@@ -95,7 +141,8 @@ export function useVimWriter() {
         if (!vimOS?.ehr?.resourceUpdater?.updateEncounter) {
           throw new Error("updateEncounter not available");
         }
-        await vimOS.ehr.resourceUpdater.updateEncounter(payload);
+        const sanitized = sanitizePayload(payload);
+        await vimOS.ehr.resourceUpdater.updateEncounter(sanitized);
         sharedWriteTimestamps.push(Date.now());
         setWriteStatus("success");
         setTimeout(() => setWriteStatus("idle"), 2000);
