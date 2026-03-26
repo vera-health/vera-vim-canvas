@@ -9,10 +9,10 @@ export function useVimContext() {
 
   useEffect(() => {
     const sdk = window.vimSdk;
-    if (!sdk) return;
+    if (!sdk?.ehr) return;
 
-    sdk.ehr.patient.get().then(setPatient);
-    sdk.ehr.encounter.get().then(setEncounter);
+    sdk.ehr.patient.get().then(setPatient).catch(() => {});
+    sdk.ehr.encounter.get().then(setEncounter).catch(() => {});
 
     sdk.ehr.patient.subscribe(setPatient);
     sdk.ehr.encounter.subscribe(setEncounter);
