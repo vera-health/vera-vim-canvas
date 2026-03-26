@@ -346,9 +346,11 @@ export interface VimEhr {
 // ---- Hub / Activation ------------------------------------------------------
 
 export type ActivationStatus = "ENABLED" | "DISABLED" | "LOADING";
+export type ApplicationSize = "CLASSIC" | "LARGE" | "EXTRA_LARGE";
 
 export interface VimHub {
   setActivationStatus(status: ActivationStatus): void;
+  setDynamicAppSize?(size: ApplicationSize): void;
 }
 
 // ---- Workflow events -------------------------------------------------------
