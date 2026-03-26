@@ -158,8 +158,8 @@ export function useEhrNotifications() {
 
   // --- Trigger 1: Order created via workflowEvents ---
   useEffect(() => {
-    if (!vimOS?.workflowEvents?.order?.onOrderCreated) return;
-    const unsub = vimOS.workflowEvents.order.onOrderCreated((order: VimOrder) => {
+    if (!vimOS?.ehr?.workflowEvents?.order?.onOrderCreated) return;
+    const unsub = vimOS.ehr.workflowEvents.order.onOrderCreated((order: VimOrder) => {
       const orderId = order.identifiers?.ehrOrderId;
       if (orderId) seenOrderIdsRef.current.add(orderId);
       const name = order.basicInformation?.orderName ?? "Unknown order";

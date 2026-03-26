@@ -382,6 +382,7 @@ export interface VimEhr {
       cb: (updatableFields: any) => void,
     ): () => void;
   };
+  workflowEvents?: VimWorkflowEvents;
 }
 
 // ---- Hub / Activation ------------------------------------------------------
@@ -423,8 +424,6 @@ export interface VimOS {
   canUpdateReferral?(params: CanUpdateReferralParams): CanUpdateResult<CanUpdateReferralParams>;
   canUpdateOrder?(params: CanUpdateOrderParams): CanUpdateResult<CanUpdateOrderParams>;
 
-  // Workflow events
-  workflowEvents?: VimWorkflowEvents;
 }
 
 export interface VimSdk {
