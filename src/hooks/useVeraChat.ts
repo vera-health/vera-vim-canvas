@@ -85,7 +85,9 @@ export function useVeraChat() {
       setMessages((prev) => [...prev, userMsg, assistantMsg]);
       setIsStreaming(true);
 
-      const fullQuestion = (ehrContext || "") + question;
+      // Only prepend patient context on the first message of a conversation
+      const isFirstMessage = threadIdRef.current === null;
+      const fullQuestion = (isFirstMessage ? ehrContext || "" : "") + question;
       const contentBuffer = { current: "" };
       let lastParseTime = 0;
       let pendingParseTimer: ReturnType<typeof setTimeout> | null = null;

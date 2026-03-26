@@ -43,7 +43,7 @@ function Tooltip({ label, children }: { label: string; children: React.ReactNode
 }
 
 export function ChatView() {
-  const { patient, encounter } = useVimContext();
+  const { patient, encounter, problems, medications } = useVimContext();
   const { messages, isStreaming, sendMessage, stopStream, resetChat } = useVeraChat();
   const [input, setInput] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -82,7 +82,7 @@ export function ChatView() {
     const text = input.trim();
     if (!text || isStreaming) return;
     setInput("");
-    sendMessage(text, formatEhrContext(patient, encounter));
+    sendMessage(text, formatEhrContext(patient, encounter, problems, medications));
   }
 
   async function handleLogout() {
@@ -98,7 +98,7 @@ export function ChatView() {
 
   function handleSampleClick(question: string) {
     if (isStreaming) return;
-    sendMessage(question, formatEhrContext(patient, encounter));
+    sendMessage(question, formatEhrContext(patient, encounter, problems, medications));
   }
 
   return (
