@@ -1,14 +1,16 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import type { VeraRoot } from "@/types/customAST";
 import { getSupabase } from "@/utils/supabase";
 import { consumeVeraStream } from "@/utils/vera-stream";
-
+import { parseCompleteMarkdown, parsePartialMarkdown } from "@/utils/mdast/parsers";
 
 export type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  mdast?: VeraRoot;
 };
 
 export function useVeraChat() {
@@ -34,6 +36,8 @@ export function useVeraChat() {
       setIsStreaming(true);
 
       const fullQuestion = (ehrContext || "") + question;
+      // Buffer to accumulate the full text for AST parsing
+      const contentBuffer = { current: "" };
 
       try {
         const {
@@ -63,10 +67,21 @@ export function useVeraChat() {
         await consumeVeraStream(
           res,
           (delta) => {
+            contentBuffer.current += delta;
+            const content = contentBuffer.current;
+
+            // Parse markdown to AST (throttled by requestAnimationFrame naturally)
+            let mdast: VeraRoot | undefined;
+            try {
+              mdast = parsePartialMarkdown(content);
+            } catch (e) {
+              console.error("[useVeraChat] parsePartialMarkdown failed:", e);
+            }
+
             setMessages((prev) =>
               prev.map((m) =>
                 m.id === assistantId
-                  ? { ...m, content: m.content + delta }
+                  ? { ...m, content, mdast }
                   : m,
               ),
             );
@@ -75,6 +90,20 @@ export function useVeraChat() {
             threadIdRef.current = tid;
           },
         );
+
+        // Final parse with complete markdown (no remending needed)
+        try {
+          const finalMdast = parseCompleteMarkdown(contentBuffer.current);
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId
+                ? { ...m, mdast: finalMdast }
+                : m,
+            ),
+          );
+        } catch (e) {
+          console.error("[useVeraChat] parseCompleteMarkdown failed:", e);
+        }
       } catch (err) {
         const errorText =
           err instanceof Error ? err.message : "Unknown error";
