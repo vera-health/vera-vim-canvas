@@ -155,6 +155,8 @@ export function ChatView({
     }
   }, [settingsOpen]);
 
+
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const text = input.trim();

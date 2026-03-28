@@ -166,7 +166,7 @@ export function useVimContext(): VimContextValue {
     }
 
     return () => {
-      unsubs.forEach((fn) => fn());
+      unsubs.forEach((fn) => { try { fn(); } catch { /* ignore */ } });
     };
   }, [vimOS, loadLists]);
 
