@@ -104,7 +104,7 @@ export function useVimWriter() {
       const unsub = vimOS.ehr.resourceUpdater.subscribe("encounter", () => {
         refreshWritability();
       });
-      return unsub;
+      return typeof unsub === "function" ? unsub : undefined;
     } catch {
       // not available
     }

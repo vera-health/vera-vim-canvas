@@ -180,7 +180,7 @@ export function useEhrNotifications() {
         { order },
       );
     });
-    return unsub;
+    return typeof unsub === "function" ? unsub : undefined;
   }, [vimOS, addNotification]);
 
   // --- Trigger 1 fallback: Detect new orders via subscription diff ---
@@ -284,10 +284,18 @@ export function useEhrNotifications() {
 
   useEffect(() => {
     if (!vimOS?.hub?.notificationBadge) return;
-    if (unreadCount > 0) {
-      vimOS.hub.notificationBadge.set(unreadCount);
-    } else {
-      vimOS.hub.notificationBadge.hide();
+    try {
+      if (unreadCount > 0) {
+        if (typeof vimOS.hub.notificationBadge.set === "function") {
+          vimOS.hub.notificationBadge.set(unreadCount);
+        }
+      } else {
+        if (typeof vimOS.hub.notificationBadge.hide === "function") {
+          vimOS.hub.notificationBadge.hide();
+        }
+      }
+    } catch {
+      // badge API may not be available in all contexts
     }
   }, [vimOS, unreadCount]);
 
