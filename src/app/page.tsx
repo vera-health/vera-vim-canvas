@@ -1,38 +1,16 @@
 "use client";
 
-import { useEffect, useState, createContext, useContext } from "react";
-import { loadSdk } from "vim-os-js-browser";
-import { getSupabase } from "@/utils/supabase";
-import { ChatView } from "@/components/ChatView";
-import { LoginView } from "@/components/LoginView";
-import type { VimOS } from "@/types/vim";
-
-export const VimContext = createContext<VimOS | null>(null);
-export function useVimOS() {
-  return useContext(VimContext);
-}
+import { useEffect, useState } from "react";
+import { getSupabase } from "@/core/utils/supabase";
+import { LoginView } from "@/core/components/LoginView";
+import { VimProvider } from "@/integrations/vim/VimProvider";
+import { VimChatView } from "@/integrations/vim/components/VimChatView";
 
 export default function Page() {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [vimOS, setVimOS] = useState<VimOS | null>(null);
 
   useEffect(() => {
-    // Initialize VimOS SDK using the official package (same as demo app)
-    async function initVim() {
-      try {
-        const os = (await loadSdk()) as unknown as VimOS;
-        if (os?.hub?.setActivationStatus) {
-          os.hub.setActivationStatus("ENABLED");
-        }
-        setVimOS(os);
-      } catch (e) {
-        console.error("VimOS init failed:", e);
-      }
-    }
-    initVim();
-
-    // Supabase auth (always required — Vera API needs the token)
     const supabase = getSupabase();
 
     supabase.auth
@@ -68,8 +46,8 @@ export default function Page() {
     );
 
   return (
-    <VimContext value={vimOS}>
-      {session ? <ChatView /> : <LoginView />}
-    </VimContext>
+    <VimProvider>
+      {session ? <VimChatView /> : <LoginView />}
+    </VimProvider>
   );
 }

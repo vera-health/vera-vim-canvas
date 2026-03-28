@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { GlobalErrorHandler } from "@/components/GlobalErrorHandler";
+import { GlobalErrorHandler } from "@/core/components/GlobalErrorHandler";
 import "./globals.css";
 
 export const metadata: Metadata = {
