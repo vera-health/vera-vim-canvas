@@ -158,8 +158,12 @@ export function ChatView() {
   // Sync expanded state with VimOS
   useEffect(() => {
     const hub = vimOS?.hub;
-    if (!hub?.setDynamicAppSize) return;
-    hub.setDynamicAppSize(expanded ? "LARGE" : "CLASSIC");
+    if (typeof hub?.setDynamicAppSize !== "function") return;
+    try {
+      hub.setDynamicAppSize(expanded ? "LARGE" : "CLASSIC");
+    } catch {
+      // SDK method may fail in certain contexts
+    }
   }, [expanded, vimOS]);
 
   function handleSubmit(e: FormEvent) {
