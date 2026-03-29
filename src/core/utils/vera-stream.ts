@@ -1,3 +1,6 @@
+import type { ReferenceSchema } from "@/core/types/references";
+import type { EvidenceLevelData } from "@/core/types/evidence";
+
 export type StreamCallbacks = {
   onDelta: (text: string) => void;
   onFinish: (threadId: string) => void;
@@ -26,8 +29,8 @@ export type StreamCallbacks = {
   onSearchProgress?: (data: { category: string; total: number }) => void;
   onSearchProgressSummary?: (data: { total: number }) => void;
   onSuggestedQuestions?: (questions: string[]) => void;
-  onReferences?: (refs: any[]) => void;
-  onEvidenceLevels?: (levels: Record<string, any>) => void;
+  onReferences?: (refs: ReferenceSchema[]) => void;
+  onEvidenceLevels?: (levels: Record<string, EvidenceLevelData>) => void;
 };
 
 export async function consumeVeraStream(

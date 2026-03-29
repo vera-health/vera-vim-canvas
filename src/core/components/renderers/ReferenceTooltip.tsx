@@ -155,6 +155,7 @@ export const ReferenceTooltipDisplay: React.FC = () => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: one-time mount flag
     setMounted(true);
     globalSetTooltipState = setState;
 
@@ -179,6 +180,7 @@ export const ReferenceTooltipDisplay: React.FC = () => {
   const [adjustedPos, setAdjustedPos] = useState<{left: number; top: number} | null>(null);
 
   // Re-adjust position whenever the tooltip becomes visible or position changes
+  /* eslint-disable react-hooks/set-state-in-effect -- intentional: measuring DOM layout then updating position */
   useEffect(() => {
     if (!state.visible || !state.reference) {
       setAdjustedPos(null);
@@ -219,6 +221,7 @@ export const ReferenceTooltipDisplay: React.FC = () => {
 
     return () => cancelAnimationFrame(id);
   }, [state.visible, state.position.x, state.position.y, state.reference]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!mounted || !state.visible || !state.reference) return null;
 

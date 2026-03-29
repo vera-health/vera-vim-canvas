@@ -47,6 +47,7 @@ export function VimChatView() {
   const ehrWriter: EhrWriter = useMemo(
     () => ({
       getWriteAvailability: (section: EhrSectionKey) => vimWriter.getWriteAvailability(section),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- bridging core EncounterWritePayload to Vim SDK payload type
       writeToEncounter: (payload: EncounterWritePayload) => vimWriter.writeToEncounter(payload as any),
       writeStatus: vimWriter.writeStatus,
       buildSectionPayload: (section: EhrSectionKey, text: string) =>

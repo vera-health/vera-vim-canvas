@@ -8,7 +8,7 @@ import { CustomASTRenderer } from "@/core/components/renderers";
 import ThinkingSteps from "./ThinkingSteps";
 import { ActionBar } from "./ActionBar";
 import { SourcesDrugsPanel } from "./SourcesDrugsPanel";
-import type { VeraBlockContent, VeraRoot } from "@/core/types/customAST";
+import type { VeraBlockContent, VeraNode } from "@/core/types/customAST";
 import type { ReferenceSchema } from "@/core/types/references";
 import { findReferenceByUrl } from "@/core/components/renderers/utils";
 
@@ -47,12 +47,12 @@ export function Message({
     if (!message.mdast || !message.references?.length) return [];
     // Walk AST to collect all citation URLs
     const citationUrls = new Set<string>();
-    const walk = (node: any) => {
-      if (node.type === "citation" && node.url) {
+    const walk = (node: VeraNode) => {
+      if (node.type === "citation") {
         citationUrls.add(node.url);
       }
-      if (node.children) {
-        for (const child of node.children) walk(child);
+      if ("children" in node && Array.isArray(node.children)) {
+        for (const child of node.children as VeraNode[]) walk(child);
       }
     };
     walk(message.mdast);

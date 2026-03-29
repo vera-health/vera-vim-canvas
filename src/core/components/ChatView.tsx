@@ -36,7 +36,6 @@ export function ChatView({
   const {
     state: whisperState,
     error: whisperError,
-    duration,
     transcribedText,
     isSupported: micSupported,
     levels,
@@ -79,6 +78,7 @@ export function ChatView({
   // Insert transcribed text into input
   useEffect(() => {
     if (transcribedText) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: syncing external transcription state into input
       setInput((prev) => {
         const separator = prev.trim() ? " " : "";
         return prev + separator + transcribedText;
@@ -193,6 +193,7 @@ export function ChatView({
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: "1px solid #EDF2F7" }}>
         <div className="flex items-center gap-2">
+          {/* eslint-disable-next-line @next/next/no-img-element -- embedded Vim widget */}
           <img src="/vera-icon.png" alt="Vera" style={{ height: 24 }} />
           <span className="text-sm font-semibold" style={{ color: "#37475E" }}>Vera Health</span>
         </div>

@@ -368,23 +368,15 @@ export interface VimEhr {
     orders?: VimOrder[] | null;
     referral?: VimReferral | null;
   };
-  subscribe(
-    resource: EhrResource,
-    cb: (data: any) => void,
-  ): void;
-  unsubscribe(
-    resource: EhrResource,
-    cb: (data: any) => void,
-  ): void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- VimOS SDK uses untyped callbacks
+  subscribe(resource: EhrResource, cb: (data: any) => void): void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  unsubscribe(resource: EhrResource, cb: (data: any) => void): void;
   resourceUpdater?: {
-    subscribe(
-      resource: UpdatableResource,
-      cb: (updatableFields: any) => void,
-    ): () => void;
-    unsubscribe?(
-      resource: UpdatableResource,
-      cb: (updatableFields: any) => void,
-    ): void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    subscribe(resource: UpdatableResource, cb: (updatableFields: any) => void): () => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    unsubscribe?(resource: UpdatableResource, cb: (updatableFields: any) => void): void;
 
     // Write methods (rate-limited: 10 req/min/user session)
     updateEncounter?(payload: EncounterUpdatePayload): Promise<void>;
@@ -417,7 +409,7 @@ export interface VimHub {
 
 export interface VimWorkflowEvents {
   order?: {
-    onOrderCreated?(cb: (order: any) => void): () => void;
+    onOrderCreated?(cb: (order: VimOrder) => void): () => void;
   };
 }
 

@@ -1,4 +1,5 @@
-import type {Extension as MicromarkExtension, Code, Construct, State} from "micromark-util-types";
+/* eslint-disable @typescript-eslint/no-explicit-any -- micromark custom token names require `as any` casts */
+import type {Extension as MicromarkExtension, Code, Construct, Effects, State, TokenizeContext} from "micromark-util-types";
 import type {Extension as FromMarkdownExtension} from "mdast-util-from-markdown";
 
 function isLineEnding(code: Code): boolean {
@@ -7,7 +8,7 @@ function isLineEnding(code: Code): boolean {
 
 // Micromark tokenizer for \[...\]
 const tokenizeLatexBlockMath: Construct["tokenize"] = function (effects, ok, nok) {
-  const self = this;
+  const self = this; // eslint-disable-line @typescript-eslint/no-this-alias -- micromark tokenizer pattern requires this aliasing
   const tail = self.events[self.events.length - 1];
   const initialSize =
     tail && tail[1].type === "linePrefix" ? tail[2].sliceSerialize(tail[1], true).length : 0;
@@ -110,7 +111,7 @@ const tokenizeLatexBlockMath: Construct["tokenize"] = function (effects, ok, nok
     return ok(code);
   }
 
-  function tokenizeClosingFence(effects2: any, ok2: any, nok2: any) {
+  function tokenizeClosingFence(effects2: Effects, ok2: State, nok2: State) {
     let prefix = 0;
 
     return beforePrefix;
@@ -167,8 +168,8 @@ const nonLazyContinuation: Construct = {
   partial: true,
 };
 
-function tokenizeNonLazyContinuation(this: any, effects: any, ok: any, nok: any) {
-  const self = this;
+function tokenizeNonLazyContinuation(this: TokenizeContext, effects: Effects, ok: State, nok: State) {
+  const self = this; // eslint-disable-line @typescript-eslint/no-this-alias -- micromark tokenizer pattern
 
   return start;
 

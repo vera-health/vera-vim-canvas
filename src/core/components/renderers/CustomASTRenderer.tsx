@@ -2,10 +2,10 @@
 
 import type {VeraRoot, VeraNode} from "@/core/types/customAST";
 import type {ReferenceSchema, ThreadFigureSchema} from "@/core/types/references";
+import type {EvidenceLevelData} from "@/core/types/evidence";
 
 import React from "react";
 
-// @ts-ignore
 import katex from "katex";
 
 import {GuidelineWrapper} from "@/core/components/renderers/wrappers/GuidelineWrapper";
@@ -31,7 +31,7 @@ interface CustomASTRendererProps {
   ast: VeraRoot;
   figures?: ThreadFigureSchema[];
   references?: ReferenceSchema[];
-  evidenceLevels?: Record<string, any>;
+  evidenceLevels?: Record<string, EvidenceLevelData>;
   isStreaming?: boolean;
 }
 
@@ -40,7 +40,7 @@ interface CustomASTNodeProps {
   path: string;
   figures: ThreadFigureSchema[];
   references: ReferenceSchema[];
-  evidenceLevels?: Record<string, any>;
+  evidenceLevels?: Record<string, EvidenceLevelData>;
   isStreaming?: boolean;
 }
 
@@ -49,7 +49,7 @@ interface ChildrenProps {
   path: string;
   figures: ThreadFigureSchema[];
   references: ReferenceSchema[];
-  evidenceLevels?: Record<string, any>;
+  evidenceLevels?: Record<string, EvidenceLevelData>;
   isStreaming?: boolean;
 }
 

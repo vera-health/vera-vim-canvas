@@ -77,6 +77,7 @@ export function useVimContext(): VimContextValue {
     );
   }, []);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- initializing state from VimOS SDK then subscribing to updates */
   useEffect(() => {
     if (!vimOS?.ehr) return;
 
@@ -169,6 +170,7 @@ export function useVimContext(): VimContextValue {
       unsubs.forEach((fn) => { try { fn(); } catch { /* ignore */ } });
     };
   }, [vimOS, loadLists]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return { patient, encounter, problems, medications, allergies, labs, vitals, orders, referral };
 }
