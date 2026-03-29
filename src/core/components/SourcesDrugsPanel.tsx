@@ -102,11 +102,11 @@ function Dot() {
 // --- Source Card ---
 
 function SourceCard({
-  ref: reference,
+  reference,
   index,
   evidenceData,
 }: {
-  ref: ReferenceSchema;
+  reference: ReferenceSchema;
   index: number;
   evidenceData?: EvidenceLevelData;
 }) {
@@ -212,12 +212,12 @@ function SourcesList({
 
   return (
     <div className="space-y-1">
-      {references.map((ref, i) => (
+      {references.map((reference, i) => (
         <SourceCard
-          key={ref.id || ref.pmid || i}
-          ref={ref}
+          key={reference.id || reference.pmid || i}
+          reference={reference}
           index={i}
-          evidenceData={getEvidenceForRef(ref, evidenceLevels)}
+          evidenceData={getEvidenceForRef(reference, evidenceLevels)}
         />
       ))}
     </div>

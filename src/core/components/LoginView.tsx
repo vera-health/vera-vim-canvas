@@ -54,6 +54,7 @@ export function LoginView() {
     >
       {/* Upper section: logo + tagline */}
       <div className="flex flex-1 flex-col items-center justify-center gap-8">
+        {/* eslint-disable-next-line @next/next/no-img-element -- embedded Vim widget, not a standalone page */}
         <img
           src="/vera-logo.png"
           alt="Vera"

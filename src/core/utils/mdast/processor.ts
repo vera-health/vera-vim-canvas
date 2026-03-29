@@ -6,7 +6,7 @@ import {parseCompleteMarkdown, parsePartialMarkdown} from "./parsers";
 
 interface CustomASTPatchEvent {
   type: "custom_ast_patch";
-  patch: any; // jsondiffpatch.Delta
+  patch: unknown;
   sequence: number; // Sequence number for ordering
 }
 

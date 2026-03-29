@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Admin debug panel works with untyped VimOS SDK data */
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
@@ -177,6 +178,7 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
   const [labs, setLabs] = useState<any[]>([]);
   const [vitals, setVitals] = useState<any[]>([]);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- loading clinical lists when patient changes */
   useEffect(() => {
     if (!patient) {
       setProblems([]); setMedications([]); setAllergies([]); setLabs([]); setVitals([]);
@@ -198,6 +200,7 @@ export function AdminPanel({ onBack }: { onBack: () => void }) {
       patient.getVitals({ page: 1 }).then((r: any) => setVitals(Array.isArray(r?.data) ? r.data : [])).catch(() => setVitals([]));
     }
   }, [patient]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Helper to get patient display name
   const patientName = patient?.demographics?.firstName

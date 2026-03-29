@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- micromark custom token names require `as any` casts */
 import type {Extension as MicromarkExtension, Code, Construct, State} from "micromark-util-types";
 import type {Extension as FromMarkdownExtension} from "mdast-util-from-markdown";
 

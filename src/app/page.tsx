@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { AuthSession } from "@supabase/supabase-js";
 import { getSupabase } from "@/core/utils/supabase";
 import { LoginView } from "@/core/components/LoginView";
 import { VimProvider } from "@/integrations/vim/VimProvider";
 import { VimChatView } from "@/integrations/vim/components/VimChatView";
 
 export default function Page() {
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<AuthSession | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -5,6 +5,7 @@ import type { VeraRoot } from "@/core/types/customAST";
 import type { ThinkingState, ThinkingStep } from "@/core/types/chat";
 import { getSupabase } from "@/core/utils/supabase";
 import type { ReferenceSchema } from "@/core/types/references";
+import type { EvidenceLevelData } from "@/core/types/evidence";
 import { consumeVeraStream } from "@/core/utils/vera-stream";
 import { parseCompleteMarkdown, parsePartialMarkdown } from "@/core/utils/mdast/parsers";
 
@@ -18,7 +19,7 @@ export type Message = {
   thinking?: ThinkingState;
   suggestedQuestions?: string[];
   references?: ReferenceSchema[];
-  evidenceLevels?: Record<string, any>;
+  evidenceLevels?: Record<string, EvidenceLevelData>;
 };
 
 function defaultThinkingState(): ThinkingState {
